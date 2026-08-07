@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import {
   ArrowLeft,
   ChevronDown,
@@ -40,6 +40,10 @@ export default function StudentsView({ onBack }) {
   const [expandedAttempt, setExpandedAttempt] = useState(null)
   const [message, setMessage] = useState(null)
   const { confirm, dialog } = useConfirm()
+  const listRef = useRef(null)
+
+  const scrollToStudents = () =>
+    listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
   const loadData = async (opts = {}) => {
     const { silent = false } = opts
@@ -175,7 +179,19 @@ export default function StudentsView({ onBack }) {
 
       {profiles.length > 0 && (
         <div className="stat-grid">
-          <div className="stat-card">
+          <div
+            className="stat-card clickable"
+            role="button"
+            tabIndex={0}
+            onClick={scrollToStudents}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                scrollToStudents()
+              }
+            }}
+            title="View all students"
+          >
             <span className="stat-label">Students</span>
             <span className="stat-value">{profiles.length}</span>
             <span className="stat-sub">
@@ -224,7 +240,7 @@ export default function StudentsView({ onBack }) {
           with their profile.
         </div>
       ) : (
-        <div className="attempt-list">
+        <div className="attempt-list" ref={listRef}>
           {students.map((student) => {
             const { average, best, last } = stats(student)
             const isOpen = expanded === student.key

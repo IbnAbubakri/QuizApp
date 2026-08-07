@@ -143,7 +143,7 @@ export default function App() {
     )
   }
 
-  if (!user) {
+  if (!user && !adminAuthed) {
     if (window.location.pathname === '/admin') {
       return (
         <AdminLogin

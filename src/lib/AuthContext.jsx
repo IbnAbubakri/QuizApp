@@ -28,7 +28,10 @@ export function AuthProvider({ children }) {
     supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: name } },
+      options: {
+        data: { full_name: name },
+        redirectTo: window.location.origin,
+      },
     })
 
   const signIn = async ({ email, password }) =>

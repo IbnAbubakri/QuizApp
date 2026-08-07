@@ -74,6 +74,13 @@ export default function App() {
   }, [isAdmin])
 
   useEffect(() => {
+    if (isAdmin && window.location.pathname !== '/admin') {
+      window.history.replaceState({}, '', '/admin')
+      setView('admin')
+    }
+  }, [isAdmin])
+
+  useEffect(() => {
     if (view === 'quiz' && quiz.finished) {
       setView('submit')
     }
@@ -128,7 +135,8 @@ export default function App() {
     setQuizQuestions([])
   }
 
-  const exitAdmin = () => {
+  const exitAdmin = async () => {
+    await signOut()
     window.history.pushState({}, '', '/')
     setView('home')
   }
@@ -139,6 +147,18 @@ export default function App() {
         <Logo withText />
         <div className="spinner" role="status" aria-label="Loading" />
       </div>
+    )
+  }
+
+  if (isAdmin) {
+    return (
+      <AdminPanel
+        topics={topics}
+        onRefresh={async () => {
+          await refreshTopics()
+        }}
+        onLogout={exitAdmin}
+      />
     )
   }
 
@@ -157,17 +177,7 @@ export default function App() {
   }
 
   if (view === 'admin') {
-    return isAdmin ? (
-      <AdminPanel
-        topics={topics}
-        onRefresh={async () => {
-          await refreshTopics()
-        }}
-        onLogout={exitAdmin}
-      />
-    ) : (
-      adminLogin
-    )
+    return adminLogin
   }
 
   if (!user) {

@@ -2225,6 +2225,38 @@ code {
   border-color: var(--red-border);
 }
 
+.live-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--green-strong);
+  background: var(--green-soft);
+  border: 1px solid var(--green-border);
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  white-space: nowrap;
+}
+
+.live-note .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(13, 150, 104, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(13, 150, 104, 0);
+  }
+}
+
 /* Expanded detail */
 
 .attempt-detail {

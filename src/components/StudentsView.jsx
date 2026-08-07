@@ -41,7 +41,9 @@ export default function StudentsView({ onBack }) {
   const [message, setMessage] = useState(null)
   const { confirm, dialog } = useConfirm()
 
-  const loadData = async () => {
+  const loadData = async (opts = {}) => {
+    const { silent = false } = opts
+    if (!silent) setLoading(true)
     const [profilesRes, attemptsRes] = await Promise.all([
       supabase.rpc('list_students'),
       supabase
@@ -54,7 +56,15 @@ export default function StudentsView({ onBack }) {
     if (attemptsRes.error) throw attemptsRes.error
     setProfiles(profilesRes.data || [])
     setAttempts(attemptsRes.data || [])
+    if (!silent) setLoading(false)
   }
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      loadData({ silent: true }).catch(() => {})
+    }, 10000)
+    return () => clearInterval(id)
+  }, [])
 
   useEffect(() => {
     ;(async () => {
@@ -76,7 +86,7 @@ export default function StudentsView({ onBack }) {
       onConfirm: async () => {
         try {
           await supabase.from('quiz_attempts').delete().eq('id', id)
-          await loadData()
+          await loadData({ silent: true })
         } catch (e) {
           setMessage({ text: 'Delete failed: ' + e.message, tone: 'error' })
         }
@@ -148,7 +158,12 @@ export default function StudentsView({ onBack }) {
           <span>Admin Panel</span>
         </button>
         <h1>Students</h1>
-        <div className="admin-header-actions" />
+        <div className="admin-header-actions">
+          <span className="live-note" title="New students appear automatically">
+            <span className="dot" aria-hidden="true" />
+            Live
+          </span>
+        </div>
       </header>
 
       <MessagePopup

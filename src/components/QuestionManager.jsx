@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { ArrowLeft, Plus, Pencil, Trash2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import MessagePopup from './MessagePopup'
+import { useConfirm } from '../hooks/useConfirm'
 
 const emptyForm = { question: '', options: ['', '', '', ''], answer: 0, explanation: '' }
 
@@ -13,6 +14,7 @@ export default function QuestionManager({ topic, onBack, onRefresh }) {
   const [form, setForm] = useState(emptyForm)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState(null)
+  const { confirm, dialog } = useConfirm()
 
   const loadQuestions = useCallback(async () => {
     setLoading(true)
@@ -91,8 +93,7 @@ export default function QuestionManager({ topic, onBack, onRefresh }) {
     }
   }
 
-  const deleteQuestion = async (q) => {
-    if (!window.confirm('Delete this question?')) return
+  const doDeleteQuestion = async (q) => {
     setBusy(true)
     try {
       await supabase.from('questions').delete().eq('id', q.id)
@@ -104,6 +105,15 @@ export default function QuestionManager({ topic, onBack, onRefresh }) {
     } finally {
       setBusy(false)
     }
+  }
+
+  const deleteQuestion = (q) => {
+    confirm({
+      title: 'Delete question?',
+      message: 'Delete this question? This cannot be undone.',
+      confirmLabel: 'Delete',
+      onConfirm: () => doDeleteQuestion(q),
+    })
   }
 
   return (
@@ -126,6 +136,7 @@ export default function QuestionManager({ topic, onBack, onRefresh }) {
         tone={message?.tone || 'info'}
         onClose={() => setMessage(null)}
       />
+      {dialog}
 
       {(showForm || editing) && (
         <form className="topic-form" onSubmit={saveQuestion}>

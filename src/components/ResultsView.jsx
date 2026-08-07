@@ -4,11 +4,11 @@ import {
   ChevronDown,
   ChevronUp,
   CheckCircle2,
-  ClipboardList,
   Trash2,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import MessagePopup from './MessagePopup'
+import { useConfirm } from '../hooks/useConfirm'
 
 const initials = (name = '') =>
   String(name || '')
@@ -24,6 +24,7 @@ export default function ResultsView({ onBack }) {
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(null)
   const [message, setMessage] = useState(null)
+  const { confirm, dialog } = useConfirm()
 
   const loadAttempts = async () => {
     const { data, error } = await supabase
@@ -47,14 +48,20 @@ export default function ResultsView({ onBack }) {
     })()
   }, [])
 
-  const deleteAttempt = async (id) => {
-    if (!window.confirm('Delete this result?')) return
-    try {
-      await supabase.from('quiz_attempts').delete().eq('id', id)
-      await loadAttempts()
-    } catch (e) {
-      setMessage({ text: 'Delete failed: ' + e.message, tone: 'error' })
-    }
+  const deleteAttempt = (id) => {
+    confirm({
+      title: 'Delete result?',
+      message: 'Delete this result? This cannot be undone.',
+      confirmLabel: 'Delete',
+      onConfirm: async () => {
+        try {
+          await supabase.from('quiz_attempts').delete().eq('id', id)
+          await loadAttempts()
+        } catch (e) {
+          setMessage({ text: 'Delete failed: ' + e.message, tone: 'error' })
+        }
+      },
+    })
   }
 
   const totalAttempts = attempts.length
@@ -81,6 +88,7 @@ export default function ResultsView({ onBack }) {
         tone={message?.tone || 'error'}
         onClose={() => setMessage(null)}
       />
+      {dialog}
 
       {totalAttempts > 0 && (
         <div className="stat-grid">

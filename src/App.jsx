@@ -40,10 +40,11 @@ export default function App() {
   const [activeTopic, setActiveTopic] = useState(null)
   const [quizQuestions, setQuizQuestions] = useState([])
   const [quizKey, setQuizKey] = useState(0)
-  const [adminAuthed, setAdminAuthed] = useState(false)
   const [authView, setAuthView] = useState('login')
 
   const { user, initializing, signOut } = useAuth()
+
+  const isAdmin = !!user && user.app_metadata?.is_admin === true
 
   const quiz = useQuiz(quizQuestions)
 
@@ -52,18 +53,17 @@ export default function App() {
     if (prevUserRef.current !== user) {
       prevUserRef.current = user
       if (window.location.pathname === '/admin') {
-        setView(adminAuthed ? 'admin' : 'admin-login')
+        setView(isAdmin ? 'admin' : 'admin-login')
       } else {
         setView('home')
       }
-      if (!user) setAdminAuthed(false)
     }
-  }, [user])
+  }, [user, isAdmin])
 
   useEffect(() => {
     const syncFromPath = () => {
       if (window.location.pathname === '/admin') {
-        setView(adminAuthed ? 'admin' : 'admin-login')
+        setView(isAdmin ? 'admin' : 'admin-login')
       } else {
         setView('home')
       }
@@ -71,7 +71,7 @@ export default function App() {
     window.addEventListener('popstate', syncFromPath)
     syncFromPath()
     return () => window.removeEventListener('popstate', syncFromPath)
-  }, [adminAuthed])
+  }, [isAdmin])
 
   useEffect(() => {
     if (view === 'quiz' && quiz.finished) {
@@ -129,7 +129,6 @@ export default function App() {
   }
 
   const exitAdmin = () => {
-    setAdminAuthed(false)
     window.history.pushState({}, '', '/')
     setView('home')
   }
@@ -143,21 +142,35 @@ export default function App() {
     )
   }
 
-  if (!user && !adminAuthed) {
-    if (window.location.pathname === '/admin') {
-      return (
-        <AdminLogin
-          onLogin={() => {
-            setAdminAuthed(true)
-            setView('admin')
-          }}
-          onBack={() => {
-            window.history.pushState({}, '', '/')
-            setView('home')
-          }}
-        />
-      )
-    }
+  const adminLogin = (
+    <AdminLogin
+      onLogin={() => setView('admin')}
+      onBack={() => {
+        window.history.pushState({}, '', '/')
+        setView('home')
+      }}
+    />
+  )
+
+  if (view === 'admin-login' || (!user && window.location.pathname === '/admin')) {
+    return adminLogin
+  }
+
+  if (view === 'admin') {
+    return isAdmin ? (
+      <AdminPanel
+        topics={topics}
+        onRefresh={async () => {
+          await refreshTopics()
+        }}
+        onLogout={exitAdmin}
+      />
+    ) : (
+      adminLogin
+    )
+  }
+
+  if (!user) {
     return authView === 'login' ? (
       <LoginPage onSwitch={() => setAuthView('register')} />
     ) : (
@@ -189,35 +202,8 @@ export default function App() {
     )
   }
 
-  if (view === 'admin-login') {
-    return (
-      <AdminLogin
-        onLogin={() => {
-          setAdminAuthed(true)
-          setView('admin')
-        }}
-        onBack={() => {
-          window.history.pushState({}, '', '/')
-          setView('home')
-        }}
-      />
-    )
-  }
-
   if (view === 'dashboard') {
     return <StudentDashboard user={user} onBack={() => setView('home')} />
-  }
-
-  if (view === 'admin') {
-    return (
-      <AdminPanel
-        topics={topics}
-        onRefresh={async () => {
-          await refreshTopics()
-        }}
-        onLogout={exitAdmin}
-      />
-    )
   }
 
   return (

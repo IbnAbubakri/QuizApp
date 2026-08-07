@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import {
-  ArrowLeft,
   Plus,
   Pencil,
   Trash2,
@@ -17,6 +16,7 @@ import QuestionManager from './QuestionManager'
 import ResultsView from './ResultsView'
 import StudentsView from './StudentsView'
 import MessagePopup from './MessagePopup'
+import { useConfirm } from '../hooks/useConfirm'
 import { seedTopics } from '../data/seed'
 
 const emptyTopic = { name: '', emoji: '📘', description: '', accent: '#6366f1' }
@@ -30,6 +30,7 @@ export default function AdminPanel({ topics, onRefresh, onLogout }) {
   const [busy, setBusy] = useState(false)
   const [seeding, setSeeding] = useState(false)
   const [message, setMessage] = useState(null)
+  const { confirm, dialog } = useConfirm()
 
   const showMessage = (text, tone = 'info') => {
     setMessage({ text, tone })
@@ -71,8 +72,7 @@ export default function AdminPanel({ topics, onRefresh, onLogout }) {
     }
   }
 
-  const deleteTopic = async (topic) => {
-    if (!window.confirm(`Delete topic "${topic.name}" and all its questions?`)) return
+  const doDeleteTopic = async (topic) => {
     setBusy(true)
     try {
       await supabase.from('topics').delete().eq('id', topic.id)
@@ -83,6 +83,15 @@ export default function AdminPanel({ topics, onRefresh, onLogout }) {
     } finally {
       setBusy(false)
     }
+  }
+
+  const deleteTopic = (topic) => {
+    confirm({
+      title: 'Delete topic?',
+      message: `Delete "${topic.name}" and all its questions? This cannot be undone.`,
+      confirmLabel: 'Delete',
+      onConfirm: () => doDeleteTopic(topic),
+    })
   }
 
   const toggleOpen = async (topic) => {
@@ -306,6 +315,7 @@ export default function AdminPanel({ topics, onRefresh, onLogout }) {
         autoDismiss={4500}
         onClose={() => setMessage(null)}
       />
+      {dialog}
     </div>
   )
 }

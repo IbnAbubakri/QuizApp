@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { UserPlus, Eye, EyeOff, Mail, UserRound } from 'lucide-react'
+import { UserPlus, Eye, EyeOff, Mail } from 'lucide-react'
 import { useAuth } from '../lib/AuthContext'
 import {
   validateName,

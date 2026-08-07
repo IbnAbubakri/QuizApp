@@ -144,6 +144,20 @@ export default function App() {
   }
 
   if (!user) {
+    if (window.location.pathname === '/admin') {
+      return (
+        <AdminLogin
+          onLogin={() => {
+            setAdminAuthed(true)
+            setView('admin')
+          }}
+          onBack={() => {
+            window.history.pushState({}, '', '/')
+            setView('home')
+          }}
+        />
+      )
+    }
     return authView === 'login' ? (
       <LoginPage onSwitch={() => setAuthView('register')} />
     ) : (

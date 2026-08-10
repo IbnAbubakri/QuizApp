@@ -66,7 +66,9 @@ export default function QuizScreen({ topic, quiz, user, onExit }) {
             <span className="page-hero-tile">{topic.emoji || '📘'}</span>
             <div className="page-hero-body">
               <h1 className="page-hero-title">{topic.name}</h1>
-              <p className="page-hero-sub">Select the correct answer to continue</p>
+              <p className="page-hero-sub">
+                Select an answer — you can change it before you finish
+              </p>
             </div>
           </div>
           <div className="page-hero-meta">
@@ -97,7 +99,6 @@ export default function QuizScreen({ topic, quiz, user, onExit }) {
               key={index}
               className={`option ${selected === index ? 'selected' : ''}`}
               onClick={() => selectAnswer(index)}
-              disabled={selected !== null}
             >
               <span className="option-letter">{String.fromCharCode(65 + index)}</span>
               <span className="option-text">{option}</span>

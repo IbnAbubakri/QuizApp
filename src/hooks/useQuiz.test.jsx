@@ -20,13 +20,15 @@ describe('useQuiz', () => {
     expect(result.current.finished).toBe(false)
   })
 
-  it('scores a correct answer and locks the selection', () => {
+  it('scores a correct answer and lets the selection be changed', () => {
     const { result } = renderHook(() => useQuiz(questions))
     act(() => result.current.selectAnswer(1))
     expect(result.current.selected).toBe(1)
     expect(result.current.score).toBe(1)
     act(() => result.current.selectAnswer(0))
-    expect(result.current.selected).toBe(1)
+    expect(result.current.selected).toBe(0)
+    expect(result.current.score).toBe(0)
+    expect(result.current.answeredCount).toBe(1)
   })
 
   it('records wrong answers without scoring', () => {

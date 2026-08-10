@@ -36,7 +36,7 @@ export function useQuiz(questions) {
 
   const selectAnswer = useCallback(
     (index) => {
-      if (!question || selected !== null) return
+      if (!question) return
       setAnswers((prev) => {
         const next = [...prev]
         next[current] = {
@@ -50,7 +50,7 @@ export function useQuiz(questions) {
         return next
       })
     },
-    [question, current, selected]
+    [question, current]
   )
 
   const goTo = useCallback(

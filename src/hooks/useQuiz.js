@@ -2,11 +2,27 @@ import { useState, useEffect, useCallback } from 'react'
 
 export const QUIZ_DURATION_MS = 90 * 60 * 1000
 
-export function useQuiz(questions) {
+export const topicDurationMs = (topic) => {
+  if (topic?.name?.toLowerCase().includes('binary')) return 2 * 60 * 60 * 1000
+  return QUIZ_DURATION_MS
+}
+
+export const formatDuration = (ms) => {
+  const minutes = Math.round(ms / 60000)
+  if (minutes >= 60) {
+    const h = Math.floor(minutes / 60)
+    const m = minutes % 60
+    const hours = `${h} hour${h > 1 ? 's' : ''}`
+    return m === 0 ? hours : `${hours} ${m} minute${m > 1 ? 's' : ''}`
+  }
+  return `${minutes} minute${minutes > 1 ? 's' : ''}`
+}
+
+export function useQuiz(questions, durationMs = QUIZ_DURATION_MS) {
   const [current, setCurrent] = useState(0)
   const [answers, setAnswers] = useState([])
   const [finished, setFinished] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(QUIZ_DURATION_MS)
+  const [timeLeft, setTimeLeft] = useState(durationMs)
 
   const question = questions[current]
   const selected = question ? (answers[current]?.chosen ?? null) : null
@@ -17,7 +33,8 @@ export function useQuiz(questions) {
     setAnswers(Array(questions.length).fill(null))
     setCurrent(0)
     setFinished(false)
-  }, [questions])
+    setTimeLeft(durationMs)
+  }, [questions, durationMs])
 
   useEffect(() => {
     if (finished) return
@@ -77,8 +94,8 @@ export function useQuiz(questions) {
     setCurrent(0)
     setAnswers(Array(questions.length).fill(null))
     setFinished(false)
-    setTimeLeft(QUIZ_DURATION_MS)
-  }, [questions.length])
+    setTimeLeft(durationMs)
+  }, [questions.length, durationMs])
 
   return {
     question,

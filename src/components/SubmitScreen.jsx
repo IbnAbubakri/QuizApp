@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Save, Home, UserRound } from 'lucide-react'
 import { displayName } from '../lib/AuthContext'
 import { saveAttempt } from '../lib/saveAttempt'
+import TopicIcon from './TopicIcon'
 
 export default function SubmitScreen({ topic, quiz, user, onSubmitted, onExit }) {
   const { score, total, answers } = quiz
@@ -35,7 +36,9 @@ export default function SubmitScreen({ topic, quiz, user, onSubmitted, onExit })
       <section className="page-hero">
         <div className="page-hero-inner">
           <div className="page-hero-main">
-            <span className="page-hero-tile">{topic.emoji || '📘'}</span>
+            <span className="page-hero-tile">
+              <TopicIcon topic={topic} size={24} />
+            </span>
             <div className="page-hero-body">
               <h1 className="page-hero-title">Quiz finished!</h1>
               <p className="page-hero-sub">

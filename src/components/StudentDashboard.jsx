@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import MessagePopup from './MessagePopup'
+import TopicIcon from './TopicIcon'
 
 const RING_SIZE = 132
 const RING_RADIUS = 56
@@ -39,7 +40,7 @@ export default function StudentDashboard({ user, onBack }) {
             .eq('user_id', user.id)
             .order('created_at', { ascending: false })
             .limit(100),
-          supabase.from('topics').select('id, name, emoji, accent'),
+          supabase.from('topics').select('id, name, accent'),
         ])
         if (attemptsRes.error) throw attemptsRes.error
         setAttempts(attemptsRes.data || [])
@@ -68,7 +69,6 @@ export default function StudentDashboard({ user, onBack }) {
     'there'
   const prettyName = firstName.charAt(0).toUpperCase() + firstName.slice(1)
 
-  const topicEmoji = (attempt) => topicMap[attempt.topic_name]?.emoji || '📘'
   const topicAccent = (attempt) => topicMap[attempt.topic_name]?.accent || '#4f46e5'
 
   const ringOffset = RING_CIRC * (1 - average / 100)
@@ -210,7 +210,9 @@ export default function StudentDashboard({ user, onBack }) {
                       }
                     }}
                   >
-                    <span className="dash-attempt-tile">{topicEmoji(attempt)}</span>
+                    <span className="dash-attempt-tile">
+                      <TopicIcon topic={topicMap[attempt.topic_name]} size={22} />
+                    </span>
                     <div className="dash-attempt-body">
                       <h3 className="dash-attempt-title">{attempt.topic_name || 'Topic'}</h3>
                       <p className="dash-attempt-sub">

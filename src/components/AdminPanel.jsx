@@ -18,8 +18,9 @@ import StudentsView from './StudentsView'
 import MessagePopup from './MessagePopup'
 import { useConfirm } from '../hooks/useConfirm'
 import { seedTopics } from '../data/seed'
+import TopicIcon from './TopicIcon'
 
-const emptyTopic = { name: '', emoji: '📘', description: '', accent: '#6366f1' }
+const emptyTopic = { name: '', description: '', accent: '#6366f1' }
 
 export default function AdminPanel({ topics, onRefresh, onLogout }) {
   const [editing, setEditing] = useState(null)
@@ -44,7 +45,6 @@ export default function AdminPanel({ topics, onRefresh, onLogout }) {
   const startEdit = (topic) => {
     setForm({
       name: topic.name,
-      emoji: topic.emoji || '📘',
       description: topic.description || '',
       accent: topic.accent || '#6366f1',
     })
@@ -116,7 +116,6 @@ export default function AdminPanel({ topics, onRefresh, onLogout }) {
           .from('topics')
           .insert({
             name: topic.name,
-            emoji: topic.emoji,
             description: topic.description,
             accent: topic.accent,
           })
@@ -198,7 +197,9 @@ export default function AdminPanel({ topics, onRefresh, onLogout }) {
           {topics.map((topic) => (
             <div key={topic.id} className="admin-topic-row">
               <div className="admin-topic-info">
-                <span className="category-emoji small">{topic.emoji || '📘'}</span>
+                <span className="category-emoji small">
+                  <TopicIcon topic={topic} size={22} />
+                </span>
                 <div>
                   <h3>{topic.name}</h3>
                   <p>{topic.description}</p>
@@ -262,15 +263,6 @@ export default function AdminPanel({ topics, onRefresh, onLogout }) {
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="e.g. Algebra"
                 required
-              />
-            </label>
-            <label className="form-emoji">
-              Emoji
-              <input
-                type="text"
-                value={form.emoji}
-                onChange={(e) => setForm({ ...form, emoji: e.target.value })}
-                placeholder="📘"
               />
             </label>
           </div>

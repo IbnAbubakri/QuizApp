@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { useQuiz, QUIZ_DURATION_MS } from './useQuiz'
+import { useQuiz, QUIZ_DURATION_MS, topicDurationMs, formatDuration } from './useQuiz'
 
 const questions = [
   { question: 'One?', options: ['A', 'B', 'C', 'D'], answer: 1, explanation: 'Because.' },
@@ -68,5 +68,37 @@ describe('useQuiz', () => {
     })
     expect(result.current.finished).toBe(true)
     expect(result.current.timeLeft).toBe(0)
+  })
+
+  it('uses a custom duration when provided and resets to it on restart', () => {
+    const custom = 2 * 60 * 60 * 1000
+    const { result } = renderHook(() => useQuiz(questions, custom))
+    expect(result.current.timeLeft).toBe(custom)
+    act(() => result.current.selectAnswer(1))
+    act(() => result.current.restart())
+    expect(result.current.timeLeft).toBe(custom)
+  })
+
+  it('resets the timer to the provided duration when questions change', () => {
+    const custom = 2 * 60 * 60 * 1000
+    const { result, rerender } = renderHook(({ qs }) => useQuiz(qs, custom), {
+      initialProps: { qs: questions },
+    })
+    act(() => result.current.selectAnswer(1))
+    rerender({ qs: [...questions] })
+    expect(result.current.timeLeft).toBe(custom)
+  })
+
+  it('gives the binary topic a two hour timer and others the default', () => {
+    expect(topicDurationMs({ name: 'Binary Number (Addition, Subtraction and Multiplication)' })).toBe(
+      2 * 60 * 60 * 1000
+    )
+    expect(topicDurationMs({ name: 'Number Basics' })).toBe(QUIZ_DURATION_MS)
+    expect(topicDurationMs(null)).toBe(QUIZ_DURATION_MS)
+  })
+
+  it('formats durations for the start dialog', () => {
+    expect(formatDuration(2 * 60 * 60 * 1000)).toBe('2 hours')
+    expect(formatDuration(90 * 60 * 1000)).toBe('1 hour 30 minutes')
   })
 })

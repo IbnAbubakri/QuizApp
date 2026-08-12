@@ -1,7 +1,6 @@
 export const seedTopics = [
   {
     name: 'Number Basics',
-    emoji: '🔢',
     description: 'Whole numbers, place value, BODMAS and primes',
     accent: '#6366f1',
     questions: [
@@ -49,7 +48,6 @@ export const seedTopics = [
   },
   {
     name: 'Fractions',
-    emoji: '🍕',
     description: 'Equivalent fractions, addition and decimals',
     accent: '#f59e0b',
     questions: [
@@ -97,7 +95,6 @@ export const seedTopics = [
   },
   {
     name: 'Algebra',
-    emoji: '✖️',
     description: 'Simple equations and unknowns',
     accent: '#10b981',
     questions: [
@@ -145,7 +142,6 @@ export const seedTopics = [
   },
   {
     name: 'Geometry',
-    emoji: '📐',
     description: 'Shapes, angles and area',
     accent: '#06b6d4',
     questions: [

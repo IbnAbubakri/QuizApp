@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ArrowLeft, ArrowRight, Timer } from 'lucide-react'
 import { saveAttempt } from '../lib/saveAttempt'
 import ConfirmDialog from './ConfirmDialog'
+import TopicIcon from './TopicIcon'
 
 const LOW_TIME_MS = 5 * 60 * 1000
 
@@ -60,10 +61,12 @@ export default function QuizScreen({ topic, quiz, user, onExit }) {
         </button>
       </div>
 
-      <section className="page-hero">
+      <section className="page-hero entrance">
         <div className="page-hero-inner">
           <div className="page-hero-main">
-            <span className="page-hero-tile">{topic.emoji || '📘'}</span>
+            <span className="page-hero-tile">
+              <TopicIcon topic={topic} size={24} />
+            </span>
             <div className="page-hero-body">
               <h1 className="page-hero-title">{topic.name}</h1>
               <p className="page-hero-sub">
@@ -89,21 +92,23 @@ export default function QuizScreen({ topic, quiz, user, onExit }) {
         </div>
       </section>
 
-      <div className="quiz-card" style={{ '--accent': topic.accent || '#4f46e5' }}>
-        <span className="question-chip">Question {current + 1}</span>
-        <h2 className="question-text">{question.question}</h2>
+      <div className="quiz-card entrance" style={{ '--accent': topic.accent || '#4f46e5' }}>
+        <div key={current} className="question-enter">
+          <span className="question-chip">Question {current + 1}</span>
+          <h2 className="question-text">{question.question}</h2>
 
-        <div className="options">
-          {question.options.map((option, index) => (
-            <button
-              key={index}
-              className={`option ${selected === index ? 'selected' : ''}`}
-              onClick={() => selectAnswer(index)}
-            >
-              <span className="option-letter">{String.fromCharCode(65 + index)}</span>
-              <span className="option-text">{option}</span>
-            </button>
-          ))}
+          <div className="options">
+            {question.options.map((option, index) => (
+              <button
+                key={index}
+                className={`option ${selected === index ? 'selected' : ''}`}
+                onClick={() => selectAnswer(index)}
+              >
+                <span className="option-letter">{String.fromCharCode(65 + index)}</span>
+                <span className="option-text">{option}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="quiz-nav-row">
@@ -118,7 +123,7 @@ export default function QuizScreen({ topic, quiz, user, onExit }) {
         </div>
       </div>
 
-      <section className="question-nav" aria-label="Jump to a question">
+      <section className="question-nav entrance" aria-label="Jump to a question">
         <div className="question-nav-head">
           <h3>Questions</h3>
           <span className="question-nav-count">

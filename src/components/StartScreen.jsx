@@ -4,6 +4,8 @@ import { displayName } from '../lib/AuthContext'
 import Logo from './Logo'
 import ConfirmDialog from './ConfirmDialog'
 import MessagePopup from './MessagePopup'
+import TopicIcon from './TopicIcon'
+import { topicDurationMs, formatDuration } from '../hooks/useQuiz'
 
 export default function StartScreen({
   topics,
@@ -50,7 +52,7 @@ export default function StartScreen({
         </div>
       </header>
 
-      <section className="dash-hero home-hero">
+      <section className="dash-hero home-hero entrance">
         <div className="dash-hero-body">
           <p className="dash-hero-eyebrow">
             <Brain size={15} />
@@ -120,17 +122,19 @@ export default function StartScreen({
             <span className="dash-section-count">{topics.length}</span>
           </div>
           <div className="categories">
-            {topics.map((topic) => {
+            {topics.map((topic, index) => {
               const locked = isLocked(topic)
               return (
                 <button
                   key={topic.id}
-                  className={`category-card ${locked ? 'locked' : ''}`}
-                  style={{ '--accent': topic.accent || '#4f46e5' }}
+                  className={`category-card entrance ${locked ? 'locked' : ''}`}
+                  style={{ '--accent': topic.accent || '#4f46e5', '--delay': `${Math.min(index * 45, 500)}ms` }}
                   onClick={() => handleTopicClick(topic)}
                   title={locked ? 'Not available yet' : undefined}
                 >
-                  <div className="category-emoji">{topic.emoji || '📘'}</div>
+                  <div className="category-emoji">
+                    <TopicIcon topic={topic} size={26} />
+                  </div>
                   <div className="category-body">
                     <h3>{topic.name}</h3>
                     <p>{topic.description}</p>
@@ -168,7 +172,7 @@ export default function StartScreen({
       <ConfirmDialog
         open={confirmTopic !== null}
         title="Start quiz?"
-        message={`Are you sure you want to start the "${confirmTopic?.name}" quiz? Your 1 hour 30 minute timer will begin.`}
+        message={`Are you sure you want to start the "${confirmTopic?.name}" quiz? Your ${formatDuration(topicDurationMs(confirmTopic))} timer will begin.`}
         confirmLabel="Yes, start"
         cancelLabel="No, go back"
         onConfirm={() => {

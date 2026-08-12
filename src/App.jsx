@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from './lib/supabase'
 import { useAuth } from './lib/AuthContext'
-import { useQuiz } from './hooks/useQuiz'
+import { useQuiz, topicDurationMs } from './hooks/useQuiz'
 import StartScreen from './components/StartScreen'
 import QuizScreen from './components/QuizScreen'
 import SubmitScreen from './components/SubmitScreen'
@@ -46,7 +46,7 @@ export default function App() {
 
   const isAdmin = !!user && user.app_metadata?.is_admin === true
 
-  const quiz = useQuiz(quizQuestions)
+  const quiz = useQuiz(quizQuestions, topicDurationMs(activeTopic))
 
   const prevUserRef = useRef(user)
   useEffect(() => {

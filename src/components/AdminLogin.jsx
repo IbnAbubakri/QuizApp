@@ -51,7 +51,9 @@ export default function AdminLogin({ onLogin, onBack }) {
         <section className="page-hero">
           <div className="page-hero-inner">
             <div className="page-hero-main">
-              <span className="page-hero-tile">🔐</span>
+              <span className="page-hero-tile">
+                <Lock size={24} />
+              </span>
               <div className="page-hero-body">
                 <h1 className="page-hero-title">Teacher access only</h1>
                 <p className="page-hero-sub">
@@ -93,7 +95,9 @@ export default function AdminLogin({ onLogin, onBack }) {
       <section className="page-hero">
         <div className="page-hero-inner">
           <div className="page-hero-main">
-            <span className="page-hero-tile">🔐</span>
+            <span className="page-hero-tile">
+                <Lock size={24} />
+              </span>
             <div className="page-hero-body">
               <h1 className="page-hero-title">Teacher Login</h1>
               <p className="page-hero-sub">

@@ -3,6 +3,7 @@ import { ArrowLeft, Plus, Pencil, Trash2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import MessagePopup from './MessagePopup'
 import { useConfirm } from '../hooks/useConfirm'
+import TopicIcon from './TopicIcon'
 
 const emptyForm = { question: '', options: ['', '', '', ''], answer: 0, explanation: '' }
 
@@ -121,7 +122,10 @@ export default function QuestionManager({ topic, onBack, onRefresh }) {
       <header className="admin-header">
         <button className="back-btn" onClick={onBack} aria-label="Back to topics">
           <ArrowLeft size={18} />
-          <span>{topic.emoji || '📘'} {topic.name}</span>
+          <span>
+            <TopicIcon topic={topic} size={18} />
+            <span style={{ marginLeft: 8 }}>{topic.name}</span>
+          </span>
         </button>
         <div className="admin-header-actions">
           <button className="primary-btn" onClick={startAdd}>

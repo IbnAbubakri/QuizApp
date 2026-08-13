@@ -1,14 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import {
-  ArrowLeft,
-  ChevronDown,
-  ChevronUp,
-  CheckCircle2,
-  Trash2,
-} from 'lucide-react'
+import { ArrowLeft, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import MessagePopup from './MessagePopup'
-import { useConfirm } from '../hooks/useConfirm'
 
 const initials = (name = '') =>
   String(name || '')
@@ -37,9 +30,7 @@ export default function StudentsView({ onBack }) {
   const [attempts, setAttempts] = useState([])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(null)
-  const [expandedAttempt, setExpandedAttempt] = useState(null)
   const [message, setMessage] = useState(null)
-  const { confirm, dialog } = useConfirm()
   const listRef = useRef(null)
 
   const scrollToStudents = () =>
@@ -82,22 +73,6 @@ export default function StudentsView({ onBack }) {
     })()
   }, [])
 
-  const deleteAttempt = (id) => {
-    confirm({
-      title: 'Delete result?',
-      message: 'Delete this result? This cannot be undone.',
-      confirmLabel: 'Delete',
-      onConfirm: async () => {
-        try {
-          await supabase.from('quiz_attempts').delete().eq('id', id)
-          await loadData({ silent: true })
-        } catch (e) {
-          setMessage({ text: 'Delete failed: ' + e.message, tone: 'error' })
-        }
-      },
-    })
-  }
-
   const students = useMemo(() => {
     const map = new Map()
     for (const p of profiles) {
@@ -131,9 +106,7 @@ export default function StudentsView({ onBack }) {
         map.get(key).attempts.push(attempt)
       }
     }
-    return [...map.values()].sort(
-      (a, b) => b.attempts.length - a.attempts.length || a.name.localeCompare(b.name)
-    )
+    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name))
   }, [profiles, attempts])
 
   const stats = (student) => {
@@ -175,7 +148,6 @@ export default function StudentsView({ onBack }) {
         tone={message?.tone || 'error'}
         onClose={() => setMessage(null)}
       />
-      {dialog}
 
       {profiles.length > 0 && (
         <div className="stat-grid">
@@ -242,7 +214,6 @@ export default function StudentsView({ onBack }) {
       ) : (
         <div className="attempt-list" ref={listRef}>
           {students.map((student) => {
-            const { average, best, last } = stats(student)
             const isOpen = expanded === student.key
             const joined = formatJoined(student.joined)
             return (
@@ -271,40 +242,15 @@ export default function StudentsView({ onBack }) {
                         </>
                       )}
                       {joined ? (
-                        <>
-                          <span className="attempt-date">joined {joined}</span>
-                          <span> · </span>
-                        </>
+                        <span className="attempt-date">joined {joined}</span>
                       ) : (
-                        <>
-                          <span className="attempt-date">guest</span>
-                          <span> · </span>
-                        </>
-                      )}
-                      <strong>{student.attempts.length}</strong>
-                      {student.attempts.length === 1 ? ' attempt' : ' attempts'}
-                      <span> · </span>
-                      best {best}%
-                      {last && (
-                        <>
-                          <span> · </span>
-                          <span className="attempt-date">last {last}</span>
-                        </>
+                        <span className="attempt-date">guest</span>
                       )}
                     </p>
-                    <div className="score-track" aria-hidden="true">
-                      <div
-                        className={`score-fill ${average >= 50 ? 'pass' : 'fail'}`}
-                        style={{ transform: `scaleX(${Math.max(average, 3) / 100})` }}
-                      />
-                    </div>
                   </div>
-                  <span className={`attempt-badge ${average >= 50 ? 'pass' : 'fail'}`}>
-                    {average}%
-                  </span>
                   <button
                     className="icon-btn"
-                    title={isOpen ? 'Hide attempts' : 'Show attempts'}
+                    title={isOpen ? 'Hide profile' : 'Show profile'}
                     onClick={() => setExpanded(isOpen ? null : student.key)}
                   >
                     {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
@@ -313,119 +259,23 @@ export default function StudentsView({ onBack }) {
 
                 {isOpen && (
                   <div className="attempt-detail">
-                    {student.attempts.length === 0 ? (
-                      <p className="attempt-note">
-                        <CheckCircle2 size={15} />
-                        <span>
-                          Registered, but no results yet — this student hasn&apos;t submitted a
-                          quiz.
-                        </span>
-                      </p>
-                    ) : (
-                      student.attempts.map((attempt) => {
-                        const failures = attempt.failed_questions || []
-                        const attemptOpen = expandedAttempt === attempt.id
-                        const passed = attempt.percent >= 50
-                        return (
-                          <div key={attempt.id} className="attempt-row">
-                            <div
-                              className="attempt-row-main"
-                              role="button"
-                              tabIndex={0}
-                              aria-expanded={attemptOpen}
-                              onClick={() =>
-                                setExpandedAttempt(attemptOpen ? null : attempt.id)
-                              }
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault()
-                                  setExpandedAttempt(attemptOpen ? null : attempt.id)
-                                }
-                              }}
-                            >
-                              <div className="attempt-body">
-                                <h4 className="attempt-title">{attempt.topic_name || 'Topic'}</h4>
-                                <p className="attempt-sub">
-                                  <strong>
-                                    {attempt.score}/{attempt.total}
-                                  </strong>
-                                  <span> · </span>
-                                  <span className="attempt-date">
-                                    {new Date(attempt.created_at).toLocaleString()}
-                                  </span>
-                                  {failures.length > 0 && (
-                                    <>
-                                      <span> · </span>
-                                      missed {failures.length}
-                                    </>
-                                  )}
-                                </p>
-                                <div className="score-track" aria-hidden="true">
-                                  <div
-                                    className={`score-fill ${passed ? 'pass' : 'fail'}`}
-                                    style={{ transform: `scaleX(${Math.max(attempt.percent, 3) / 100})` }}
-                                  />
-                                </div>
-                              </div>
-                              <button
-                                className="icon-btn danger"
-                                title="Delete result"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  deleteAttempt(attempt.id)
-                                }}
-                              >
-                                <Trash2 size={17} />
-                              </button>
-                              <button
-                                className="icon-btn"
-                                title={attemptOpen ? 'Hide details' : 'Show details'}
-                                onClick={() =>
-                                  setExpandedAttempt(attemptOpen ? null : attempt.id)
-                                }
-                              >
-                                {attemptOpen ? (
-                                  <ChevronUp size={17} />
-                                ) : (
-                                  <ChevronDown size={17} />
-                                )}
-                              </button>
-                            </div>
-
-                            {attemptOpen && (
-                              <div className="attempt-detail attempt-detail--inner">
-                                {failures.length === 0 ? (
-                                  <p className="attempt-note">
-                                    <CheckCircle2 size={15} />
-                                    <span>Perfect score — no mistakes.</span>
-                                  </p>
-                                ) : (
-                                  failures.map((f) => (
-                                    <div key={f.number} className="failure-item">
-                                      <div className="failure-head">
-                                        <span className="failure-number">#{f.number}</span>
-                                        <span className="failure-question">{f.question}</span>
-                                      </div>
-                                      <p className="review-wrong-answer">
-                                        Your answer: {f.yourAnswer}
-                                      </p>
-                                      <p className="review-correct-answer">
-                                        Correct answer: {f.correctAnswer}
-                                      </p>
-                                      {f.explanation && (
-                                        <p className="review-explanation">
-                                          Why: {f.explanation}
-                                        </p>
-                                      )}
-                                    </div>
-                                  ))
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })
-                    )}
+                    <div className="student-profile">
+                      <span className="student-profile-avatar">{initials(student.name)}</span>
+                      <div className="student-profile-body">
+                        <h4>{student.name}</h4>
+                        <p className="attempt-sub">{student.email || 'No email on file'}</p>
+                        <p className="attempt-sub">
+                          {joined ? `Joined ${joined}` : 'Guest — submitted without an account'}
+                        </p>
+                        {student.id && (
+                          <p className="attempt-sub student-profile-id">Member ID: {student.id}</p>
+                        )}
+                      </div>
+                    </div>
+                    <p className="attempt-note">
+                      <BarChart3 size={15} />
+                      <span>This student&apos;s results are shown in the Results tab.</span>
+                    </p>
                   </div>
                 )}
               </div>

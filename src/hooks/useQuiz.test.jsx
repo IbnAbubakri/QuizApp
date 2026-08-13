@@ -101,4 +101,38 @@ describe('useQuiz', () => {
     expect(formatDuration(2 * 60 * 60 * 1000)).toBe('2 hours')
     expect(formatDuration(90 * 60 * 1000)).toBe('1 hour 30 minutes')
   })
+
+  it('restores an in-progress quiz from a saved draft', () => {
+    const initial = {
+      current: 1,
+      answers: [
+        null,
+        {
+          question: 'Two?',
+          chosen: 1,
+          chosenText: 'A',
+          correctText: 'C',
+          explanation: '',
+          correct: true,
+        },
+      ],
+      timeLeft: 123000,
+      finished: false,
+    }
+    const { result } = renderHook(() => useQuiz(questions, QUIZ_DURATION_MS, initial))
+    expect(result.current.current).toBe(1)
+    expect(result.current.timeLeft).toBe(123000)
+    expect(result.current.score).toBe(1)
+    expect(result.current.answeredCount).toBe(1)
+    expect(result.current.selected).toBe(1)
+  })
+
+  it('lets a restored draft be restarted cleanly', () => {
+    const initial = { current: 1, answers: [null, null], timeLeft: 90000, finished: false }
+    const { result } = renderHook(() => useQuiz(questions, QUIZ_DURATION_MS, initial))
+    act(() => result.current.restart())
+    expect(result.current.current).toBe(0)
+    expect(result.current.answers).toEqual([null, null])
+    expect(result.current.timeLeft).toBe(QUIZ_DURATION_MS)
+  })
 })

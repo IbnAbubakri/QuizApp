@@ -93,16 +93,17 @@ export default function QuizScreen({ topic, quiz, user, onExit }) {
       </section>
 
       <div className="quiz-card entrance" style={{ '--accent': topic.accent || '#4f46e5' }}>
-        <div key={current} className="question-enter">
+        <div key={current} className="question-enter" aria-live="polite">
           <span className="question-chip">Question {current + 1}</span>
           <h2 className="question-text">{question.question}</h2>
 
-          <div className="options">
+          <div className="options" role="group" aria-label="Answer options">
             {question.options.map((option, index) => (
               <button
                 key={index}
                 className={`option ${selected === index ? 'selected' : ''}`}
                 onClick={() => selectAnswer(index)}
+                aria-pressed={selected === index}
               >
                 <span className="option-letter">{String.fromCharCode(65 + index)}</span>
                 <span className="option-text">{option}</span>

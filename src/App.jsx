@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { lazy, Suspense, useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from './lib/supabase'
 import { useAuth } from './lib/AuthContext'
 import { useQuiz, topicDurationMs } from './hooks/useQuiz'
@@ -6,12 +6,37 @@ import StartScreen from './components/StartScreen'
 import QuizScreen from './components/QuizScreen'
 import SubmitScreen from './components/SubmitScreen'
 import ResultScreen from './components/ResultScreen'
-import AdminLogin from './components/AdminLogin'
-import AdminPanel from './components/AdminPanel'
-import StudentDashboard from './components/StudentDashboard'
 import LoginPage from './components/LoginPage'
 import RegisterPage from './components/RegisterPage'
 import Logo from './components/Logo'
+
+const AdminLogin = lazy(() => import('./components/AdminLogin'))
+const AdminPanel = lazy(() => import('./components/AdminPanel'))
+const StudentDashboard = lazy(() => import('./components/StudentDashboard'))
+
+const DRAFT_KEY = 'quizapp:draft'
+
+const loadDraft = () => {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY)
+    if (!raw) return null
+    const draft = JSON.parse(raw)
+    if (!draft?.topic || !Array.isArray(draft?.questions) || draft.questions.length === 0) {
+      return null
+    }
+    return draft
+  } catch {
+    return null
+  }
+}
+
+const clearDraft = () => {
+  try {
+    localStorage.removeItem(DRAFT_KEY)
+  } catch {
+    /* storage unavailable */
+  }
+}
 
 const shuffle = (arr) => {
   const a = [...arr]
@@ -41,12 +66,21 @@ export default function App() {
   const [quizQuestions, setQuizQuestions] = useState([])
   const [quizKey, setQuizKey] = useState(0)
   const [authView, setAuthView] = useState('login')
+  const [draft, setDraft] = useState(loadDraft)
+  const [draftInitial, setDraftInitial] = useState(null)
 
   const { user, initializing, signOut } = useAuth()
 
   const isAdmin = !!user && user.app_metadata?.is_admin === true
 
-  const quiz = useQuiz(quizQuestions, topicDurationMs(activeTopic))
+  const quiz = useQuiz(quizQuestions, topicDurationMs(activeTopic), draftInitial)
+
+  const screenFallback = (
+    <div className="auth-screen">
+      <Logo withText />
+      <div className="spinner" role="status" aria-label="Loading" />
+    </div>
+  )
 
   const prevUserRef = useRef(user)
   useEffect(() => {
@@ -86,6 +120,26 @@ export default function App() {
     }
   }, [view, quiz.finished])
 
+  const { current: quizCurrent, answers: quizAnswers, timeLeft: quizTimeLeft, finished: quizFinished } = quiz
+
+  useEffect(() => {
+    if (view !== 'quiz' || quizQuestions.length === 0 || !activeTopic) return
+    const saved = {
+      topic: activeTopic,
+      questions: quizQuestions,
+      current: quizCurrent,
+      answers: quizAnswers,
+      timeLeft: quizTimeLeft,
+      finished: quizFinished,
+      savedAt: Date.now(),
+    }
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(saved))
+    } catch {
+      /* storage unavailable */
+    }
+  }, [view, quizQuestions, activeTopic, quizCurrent, quizAnswers, quizTimeLeft, quizFinished])
+
   const refreshTopics = useCallback(async () => {
     const { data, error } = await supabase
       .from('topics')
@@ -113,6 +167,7 @@ export default function App() {
     if (topic.is_open === false) return
     setActiveTopic(topic)
     setView('quiz')
+    setDraftInitial(null)
     const { data } = await supabase
       .from('questions')
       .select('*')
@@ -123,7 +178,28 @@ export default function App() {
     setQuizKey((k) => k + 1)
   }
 
+  const resumeQuiz = () => {
+    if (!draft) return
+    setActiveTopic(draft.topic)
+    setQuizQuestions(draft.questions)
+    setDraftInitial({
+      current: draft.current ?? 0,
+      answers: draft.answers,
+      timeLeft: draft.timeLeft,
+      finished: draft.finished,
+    })
+    setQuizKey((k) => k + 1)
+    setDraft(null)
+    setView('quiz')
+  }
+
+  const discardDraft = () => {
+    clearDraft()
+    setDraft(null)
+  }
+
   const restartQuiz = () => {
+    setDraftInitial(null)
     quiz.restart()
     setQuizQuestions((prev) => shuffleQuestions(prev))
     setQuizKey((k) => k + 1)
@@ -131,6 +207,8 @@ export default function App() {
   }
 
   const exitQuiz = () => {
+    clearDraft()
+    setDraft(null)
     setView('home')
     setQuizQuestions([])
   }
@@ -152,24 +230,28 @@ export default function App() {
 
   if (isAdmin) {
     return (
-      <AdminPanel
-        topics={topics}
-        onRefresh={async () => {
-          await refreshTopics()
-        }}
-        onLogout={exitAdmin}
-      />
+      <Suspense fallback={screenFallback}>
+        <AdminPanel
+          topics={topics}
+          onRefresh={async () => {
+            await refreshTopics()
+          }}
+          onLogout={exitAdmin}
+        />
+      </Suspense>
     )
   }
 
   const adminLogin = (
-    <AdminLogin
-      onLogin={() => setView('admin')}
-      onBack={() => {
-        window.history.pushState({}, '', '/')
-        setView('home')
-      }}
-    />
+    <Suspense fallback={screenFallback}>
+      <AdminLogin
+        onLogin={() => setView('admin')}
+        onBack={() => {
+          window.history.pushState({}, '', '/')
+          setView('home')
+        }}
+      />
+    </Suspense>
   )
 
   if (view === 'admin-login' || (!user && window.location.pathname === '/admin')) {
@@ -200,7 +282,10 @@ export default function App() {
         topic={activeTopic}
         quiz={quiz}
         user={user}
-        onSubmitted={() => setView('result')}
+        onSubmitted={() => {
+          clearDraft()
+          setView('result')
+        }}
         onExit={exitQuiz}
       />
     )
@@ -213,7 +298,11 @@ export default function App() {
   }
 
   if (view === 'dashboard') {
-    return <StudentDashboard user={user} onBack={() => setView('home')} />
+    return (
+      <Suspense fallback={screenFallback}>
+        <StudentDashboard user={user} onBack={() => setView('home')} />
+      </Suspense>
+    )
   }
 
   return (
@@ -225,6 +314,9 @@ export default function App() {
       onLogout={signOut}
       onDashboard={() => setView('dashboard')}
       onSelect={startQuiz}
+      draft={draft}
+      onResume={resumeQuiz}
+      onDiscard={discardDraft}
     />
   )
 }

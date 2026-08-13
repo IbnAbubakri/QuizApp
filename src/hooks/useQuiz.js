@@ -18,11 +18,13 @@ export const formatDuration = (ms) => {
   return `${minutes} minute${minutes > 1 ? 's' : ''}`
 }
 
-export function useQuiz(questions, durationMs = QUIZ_DURATION_MS) {
-  const [current, setCurrent] = useState(0)
-  const [answers, setAnswers] = useState([])
-  const [finished, setFinished] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(durationMs)
+export function useQuiz(questions, durationMs = QUIZ_DURATION_MS, initial = null) {
+  const [current, setCurrent] = useState(initial?.current ?? 0)
+  const [answers, setAnswers] = useState(
+    initial?.answers ?? Array(questions.length).fill(null)
+  )
+  const [finished, setFinished] = useState(initial?.finished ?? false)
+  const [timeLeft, setTimeLeft] = useState(initial?.timeLeft ?? durationMs)
 
   const question = questions[current]
   const selected = question ? (answers[current]?.chosen ?? null) : null
@@ -30,10 +32,18 @@ export function useQuiz(questions, durationMs = QUIZ_DURATION_MS) {
   const answeredCount = answers.filter(Boolean).length
 
   useEffect(() => {
-    setAnswers(Array(questions.length).fill(null))
-    setCurrent(0)
-    setFinished(false)
-    setTimeLeft(durationMs)
+    if (initial) {
+      setAnswers(initial.answers ?? Array(questions.length).fill(null))
+      setCurrent(initial.current ?? 0)
+      setFinished(!!initial.finished)
+      setTimeLeft(initial.timeLeft ?? durationMs)
+    } else {
+      setAnswers(Array(questions.length).fill(null))
+      setCurrent(0)
+      setFinished(false)
+      setTimeLeft(durationMs)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questions, durationMs])
 
   useEffect(() => {

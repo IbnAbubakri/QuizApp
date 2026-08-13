@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { LogOut, UserRound, BarChart3, Brain, Lock } from 'lucide-react'
+import { LogOut, UserRound, BarChart3, Brain, Lock, Play, Trash2 } from 'lucide-react'
 import { displayName } from '../lib/AuthContext'
 import Logo from './Logo'
 import ConfirmDialog from './ConfirmDialog'
@@ -15,6 +15,9 @@ export default function StartScreen({
   onLogout,
   onDashboard,
   onSelect,
+  draft,
+  onResume,
+  onDiscard,
 }) {
   const [confirmTopic, setConfirmTopic] = useState(null)
   const [lockedMsg, setLockedMsg] = useState('')
@@ -117,6 +120,33 @@ export default function StartScreen({
 
       {!loading && topics.length > 0 && (
         <>
+          {draft && (
+            <div className="resume-banner entrance" role="region" aria-label="Resume quiz">
+              <div className="resume-banner-icon">
+                <Play size={18} />
+              </div>
+              <div className="resume-banner-body">
+                <strong>You have a quiz in progress</strong>
+                <p>
+                  &quot;{draft.topic?.name}&quot; ·{' '}
+                  {(draft.answers || []).filter(Boolean).length} answered so far
+                </p>
+              </div>
+              <div className="resume-banner-actions">
+                <button className="primary-btn" onClick={onResume}>
+                  Resume
+                </button>
+                <button
+                  className="icon-btn resume-discard"
+                  onClick={onDiscard}
+                  aria-label="Discard draft"
+                  title="Discard draft"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </div>
+          )}
           <div className="dash-section-head">
             <h2>Choose a topic</h2>
             <span className="dash-section-count">{topics.length}</span>

@@ -141,7 +141,7 @@ export default function AdminPanel({ topics, onRefresh, onLogout }) {
   }
 
   if (showResults) {
-    return <ResultsView onBack={() => setShowResults(false)} />
+    return <ResultsView topics={topics} onBack={() => setShowResults(false)} />
   }
 
   if (showStudents) {

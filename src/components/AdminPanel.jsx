@@ -10,12 +10,14 @@ import {
   Users,
   Lock,
   LockOpen,
+  Calculator as CalculatorIcon,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import QuestionManager from './QuestionManager'
 import ResultsView from './ResultsView'
 import StudentsView from './StudentsView'
 import MessagePopup from './MessagePopup'
+import CalculatorModal from './CalculatorModal'
 import { useConfirm } from '../hooks/useConfirm'
 import { seedTopics } from '../data/seed'
 import TopicIcon from './TopicIcon'
@@ -31,6 +33,7 @@ export default function AdminPanel({ topics, onRefresh, onLogout }) {
   const [busy, setBusy] = useState(false)
   const [seeding, setSeeding] = useState(false)
   const [message, setMessage] = useState(null)
+  const [calcOpen, setCalcOpen] = useState(false)
   const { confirm, dialog } = useConfirm()
 
   const showMessage = (text, tone = 'info') => {
@@ -175,6 +178,10 @@ export default function AdminPanel({ topics, onRefresh, onLogout }) {
             <ClipboardList size={16} />
             Results
           </button>
+          <button className="ghost-btn" onClick={() => setCalcOpen(true)}>
+            <CalculatorIcon size={16} />
+            Calculator
+          </button>
           {topics.length === 0 && (
             <button className="ghost-btn" onClick={importSeed} disabled={seeding}>
               <Upload size={16} />
@@ -307,6 +314,7 @@ export default function AdminPanel({ topics, onRefresh, onLogout }) {
         autoDismiss={4500}
         onClose={() => setMessage(null)}
       />
+      <CalculatorModal open={calcOpen} onClose={() => setCalcOpen(false)} />
       {dialog}
     </div>
   )

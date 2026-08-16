@@ -68,4 +68,23 @@ describe('QuizScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: /next/i }))
     expect(screen.getByRole('button', { name: /finish/i })).toBeInTheDocument()
   })
+
+  it('opens a calculator overlay without leaving the quiz', () => {
+    render(<Harness />)
+    fireEvent.click(screen.getByRole('button', { name: 'Open calculator' }))
+    expect(screen.getByRole('button', { name: 'AC' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Which planet is closest to the Sun?' })
+    ).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Close calculator' }))
+    expect(screen.queryByRole('button', { name: 'AC' })).not.toBeInTheDocument()
+  })
+
+  it('keeps the quiz answerable while the calculator is open', () => {
+    render(<Harness />)
+    fireEvent.click(screen.getByRole('button', { name: 'Open calculator' }))
+    const mercury = screen.getByText('Mercury').closest('button')
+    fireEvent.click(mercury)
+    expect(mercury).toHaveAttribute('aria-pressed', 'true')
+  })
 })

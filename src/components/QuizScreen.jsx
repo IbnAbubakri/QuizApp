@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { ArrowLeft, ArrowRight, Timer } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Timer, Calculator as CalculatorIcon } from 'lucide-react'
 import { saveAttempt } from '../lib/saveAttempt'
 import ConfirmDialog from './ConfirmDialog'
+import CalculatorModal from './CalculatorModal'
 import TopicIcon from './TopicIcon'
 
 const LOW_TIME_MS = 5 * 60 * 1000
@@ -23,6 +24,7 @@ export default function QuizScreen({ topic, quiz, user, onExit }) {
   const [confirmExit, setConfirmExit] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const [calcOpen, setCalcOpen] = useState(false)
 
   const handleExit = async () => {
     setSaving(true)
@@ -79,6 +81,15 @@ export default function QuizScreen({ topic, quiz, user, onExit }) {
               <Timer size={15} />
               {formatTime(timeLeft)}
             </span>
+            <button
+              className="quiz-calc-btn"
+              onClick={() => setCalcOpen(true)}
+              aria-label="Open calculator"
+              title="Open calculator"
+            >
+              <CalculatorIcon size={15} />
+              <span>Calc</span>
+            </button>
             <span className="page-hero-count">
               {current + 1} / {total}
             </span>
@@ -174,6 +185,8 @@ export default function QuizScreen({ topic, quiz, user, onExit }) {
         onConfirm={handleExit}
         onCancel={() => setConfirmExit(false)}
       />
+
+      <CalculatorModal open={calcOpen} onClose={() => setCalcOpen(false)} />
     </div>
   )
 }

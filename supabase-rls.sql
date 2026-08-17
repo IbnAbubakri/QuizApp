@@ -4,15 +4,19 @@
 -- 1. Helper: is the current user a teacher/admin?
 --    Admin is granted by setting app_metadata.is_admin = true on auth.users
 --    (e.g. UPDATE auth.users SET raw_app_meta_data = raw_app_meta_data || '{"is_admin": true}'::jsonb WHERE email = 'teacher@example.com');
+--    Only reads auth.jwt(), so SECURITY INVOKER is fine and avoids definer exposure.
 create or replace function public.is_admin()
 returns boolean
 language sql
 stable
-security definer
+security invoker
 set search_path = public
 as $$
   select coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 $$;
+
+revoke all on function public.is_admin() from public, anon;
+grant execute on function public.is_admin() to authenticated;
 
 -- 2. TOPICS: everyone may read; only teachers may write.
 drop policy if exists "public write topics" on public.topics;
@@ -37,13 +41,15 @@ create policy "teacher delete questions" on public.questions
 drop policy if exists "public read quiz_attempts" on public.quiz_attempts;
 drop policy if exists "public write quiz_attempts" on public.quiz_attempts;
 create policy "read own or admin attempts" on public.quiz_attempts
-  for select using (public.is_admin() or user_id = auth.uid());
+  for select using ((select public.is_admin()) or user_id = (select auth.uid()));
 create policy "insert own attempts" on public.quiz_attempts
-  for insert with check (auth.uid() is not null and user_id = auth.uid());
+  for insert with check ((select auth.uid()) is not null and user_id = (select auth.uid()));
 create policy "teacher update attempts" on public.quiz_attempts
-  for update using (public.is_admin());
+  for update using ((select public.is_admin()));
 create policy "teacher delete attempts" on public.quiz_attempts
-  for delete using (public.is_admin());
+  for delete using ((select public.is_admin()));
 
 -- 5. Index for the dashboard query (filter by user_id).
 create index if not exists quiz_attempts_user_id_idx on public.quiz_attempts(user_id);
+create index if not exists questions_topic_id_idx on public.questions(topic_id);
+create index if not exists quiz_attempts_topic_id_idx on public.quiz_attempts(topic_id);

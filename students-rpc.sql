@@ -40,7 +40,7 @@ as $$
   order by u.created_at;
 $$;
 
-revoke all on function public.list_students() from public;
+revoke all on function public.list_students() from public, anon;
 grant execute on function public.list_students() to authenticated;
 
 -- Total number of students (admins are excluded).
@@ -57,5 +57,5 @@ as $$
     and coalesce(u.raw_app_meta_data ->> 'is_admin', 'false') <> 'true';
 $$;
 
-revoke all on function public.student_count() from public;
+revoke all on function public.student_count() from public, anon;
 grant execute on function public.student_count() to authenticated;

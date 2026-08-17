@@ -44,8 +44,7 @@ export default function StudentsView({ onBack }) {
       supabase
         .from('quiz_attempts')
         .select('*')
-        .order('created_at', { ascending: false })
-        .limit(500),
+        .order('created_at', { ascending: false }),
     ])
     if (profilesRes.error) throw profilesRes.error
     if (attemptsRes.error) throw attemptsRes.error
@@ -151,17 +150,10 @@ export default function StudentsView({ onBack }) {
 
       {profiles.length > 0 && (
         <div className="stat-grid">
-          <div
+          <button
             className="stat-card clickable"
-            role="button"
-            tabIndex={0}
+            type="button"
             onClick={scrollToStudents}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                scrollToStudents()
-              }
-            }}
             title="View all students"
           >
             <span className="stat-label">Students</span>
@@ -169,7 +161,7 @@ export default function StudentsView({ onBack }) {
             <span className="stat-sub">
               {passingStudents} averaging 50% or above
             </span>
-          </div>
+          </button>
           <div className="stat-card">
             <span className="stat-label">Total attempts</span>
             <span className="stat-value">{attempts.length}</span>
@@ -218,18 +210,11 @@ export default function StudentsView({ onBack }) {
             const joined = formatJoined(student.joined)
             return (
               <div key={student.key} className="attempt-row">
-                <div
-                  className="attempt-row-main"
-                  role="button"
-                  tabIndex={0}
+                <button
+                  type="button"
+                  className="attempt-row-main row-btn"
                   aria-expanded={isOpen}
                   onClick={() => setExpanded(isOpen ? null : student.key)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      setExpanded(isOpen ? null : student.key)
-                    }
-                  }}
                 >
                   <span className="monogram">{initials(student.name)}</span>
                   <div className="attempt-body">
@@ -248,14 +233,10 @@ export default function StudentsView({ onBack }) {
                       )}
                     </p>
                   </div>
-                  <button
-                    className="icon-btn"
-                    title={isOpen ? 'Hide profile' : 'Show profile'}
-                    onClick={() => setExpanded(isOpen ? null : student.key)}
-                  >
+                  <span className="chevron" aria-hidden="true">
                     {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                  </button>
-                </div>
+                  </span>
+                </button>
 
                 {isOpen && (
                   <div className="attempt-detail">

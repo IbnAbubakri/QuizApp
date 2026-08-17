@@ -41,7 +41,6 @@ export default function ResultsView({ topics = [], onBack }) {
       .from('quiz_attempts')
       .select('*')
       .order('created_at', { ascending: false })
-      .limit(500)
     if (error) throw error
     setAttempts(data || [])
   }
@@ -271,18 +270,11 @@ export default function ResultsView({ topics = [], onBack }) {
                 )
                 return (
                   <div key={student.key} className="attempt-row">
-                    <div
-                      className="attempt-row-main"
-                      role="button"
-                      tabIndex={0}
+                    <button
+                      type="button"
+                      className="attempt-row-main row-btn"
                       aria-expanded={sOpen}
                       onClick={() => setExpandedStudent(sOpen ? null : student.key)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          setExpandedStudent(sOpen ? null : student.key)
-                        }
-                      }}
                     >
                       <span className="monogram">{initials(student.name)}</span>
                       <div className="attempt-body">
@@ -299,14 +291,10 @@ export default function ResultsView({ topics = [], onBack }) {
                       <span className={`attempt-badge ${sAvg >= 50 ? 'pass' : 'fail'}`}>
                         {sAvg}%
                       </span>
-                      <button
-                        className="icon-btn"
-                        title={sOpen ? 'Hide attempts' : 'Show attempts'}
-                        onClick={() => setExpandedStudent(sOpen ? null : student.key)}
-                      >
+                      <span className="chevron" aria-hidden="true">
                         {sOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                      </button>
-                    </div>
+                      </span>
+                    </button>
 
                     {sOpen && (
                       <div className="attempt-detail">
@@ -316,59 +304,47 @@ export default function ResultsView({ topics = [], onBack }) {
                           const passed = attempt.percent >= 50
                           return (
                             <div key={attempt.id} className="attempt-row">
-                              <div
-                                className="attempt-row-main"
-                                role="button"
-                                tabIndex={0}
-                                aria-expanded={aOpen}
-                                onClick={() => setExpandedAttempt(aOpen ? null : attempt.id)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault()
-                                    setExpandedAttempt(aOpen ? null : attempt.id)
-                                  }
-                                }}
-                              >
-                                <div className="attempt-body">
-                                  <h4 className="attempt-title">
-                                    {attempt.score}/{attempt.total}
-                                  </h4>
-                                  <p className="attempt-sub">
-                                    <span className="attempt-date">
-                                      {new Date(attempt.created_at).toLocaleString()}
-                                    </span>
-                                    {failures.length > 0 && (
-                                      <>
-                                        <span> · </span>
-                                        missed {failures.length}
-                                      </>
-                                    )}
-                                  </p>
-                                  <div className="score-track" aria-hidden="true">
-                                    <div
-                                      className={`score-fill ${passed ? 'pass' : 'fail'}`}
-                                      style={{
-                                        transform: `scaleX(${Math.max(attempt.percent, 3) / 100})`,
-                                      }}
-                                    />
+                              <div className="attempt-row-main">
+                                <button
+                                  type="button"
+                                  className="attempt-expand row-btn"
+                                  aria-expanded={aOpen}
+                                  onClick={() => setExpandedAttempt(aOpen ? null : attempt.id)}
+                                >
+                                  <div className="attempt-body">
+                                    <h4 className="attempt-title">
+                                      {attempt.score}/{attempt.total}
+                                    </h4>
+                                    <p className="attempt-sub">
+                                      <span className="attempt-date">
+                                        {new Date(attempt.created_at).toLocaleString()}
+                                      </span>
+                                      {failures.length > 0 && (
+                                        <>
+                                          <span> · </span>
+                                          missed {failures.length}
+                                        </>
+                                      )}
+                                    </p>
+                                    <div className="score-track" aria-hidden="true">
+                                      <div
+                                        className={`score-fill ${passed ? 'pass' : 'fail'}`}
+                                        style={{
+                                          transform: `scaleX(${Math.max(attempt.percent, 3) / 100})`,
+                                        }}
+                                      />
+                                    </div>
                                   </div>
-                                </div>
+                                  <span className="chevron" aria-hidden="true">
+                                    {aOpen ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
+                                  </span>
+                                </button>
                                 <button
                                   className="icon-btn danger"
                                   title="Delete result"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    deleteAttempt(attempt.id)
-                                  }}
+                                  onClick={() => deleteAttempt(attempt.id)}
                                 >
                                   <Trash2 size={17} />
-                                </button>
-                                <button
-                                  className="icon-btn"
-                                  title={aOpen ? 'Hide details' : 'Show details'}
-                                  onClick={() => setExpandedAttempt(aOpen ? null : attempt.id)}
-                                >
-                                  {aOpen ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
                                 </button>
                               </div>
 
@@ -387,7 +363,7 @@ export default function ResultsView({ topics = [], onBack }) {
                                           <span className="failure-question">{f.question}</span>
                                         </div>
                                         <p className="review-wrong-answer">
-                                          Your answer: {f.yourAnswer}
+                                          Your answer: {f.yourAnswer ?? 'Not answered'}
                                         </p>
                                         <p className="review-correct-answer">
                                           Correct answer: {f.correctAnswer}

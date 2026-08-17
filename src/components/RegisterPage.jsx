@@ -11,13 +11,13 @@ import Logo from './Logo'
 
 const getErrorMessage = (error) => {
   if (!error) return 'Something went wrong. Please try again.'
-  const msg = error.message || String(error)
+  const msg = error.message || ''
   if (msg.includes('already registered')) {
     return 'An account with this email already exists. Try logging in instead.'
   }
   if (msg.includes('signup_disabled'))
     return 'New registrations are currently disabled. Ask Mr. Faaruq to enable them.'
-  return msg
+  return 'Something went wrong. Please try again.'
 }
 
 export default function RegisterPage({ onSwitch }) {

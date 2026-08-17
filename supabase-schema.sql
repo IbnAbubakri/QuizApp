@@ -40,15 +40,19 @@ alter table public.quiz_attempts enable row level security;
 
 -- Teacher/admin detection. Grant admin by setting app_metadata.is_admin = true on the
 -- teacher's auth.users row (see supabase-rls.sql for the UPDATE statement).
+-- Only reads auth.jwt(), so SECURITY INVOKER is fine and avoids definer exposure.
 create or replace function public.is_admin()
 returns boolean
 language sql
 stable
-security definer
+security invoker
 set search_path = public
 as $$
   select coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 $$;
+
+revoke all on function public.is_admin() from public, anon;
+grant execute on function public.is_admin() to authenticated;
 
 -- Topics & questions: anyone may read; only teachers may write.
 create policy "public read topics" on public.topics for select using (true);
@@ -63,9 +67,11 @@ create policy "teacher delete questions" on public.questions for delete using (p
 
 -- Attempts: students see their own; teachers see everything. Students may insert
 -- their own attempts; only teachers may update/delete.
-create policy "read own or admin attempts" on public.quiz_attempts for select using (public.is_admin() or user_id = auth.uid());
-create policy "insert own attempts" on public.quiz_attempts for insert with check (auth.uid() is not null and user_id = auth.uid());
-create policy "teacher update attempts" on public.quiz_attempts for update using (public.is_admin());
-create policy "teacher delete attempts" on public.quiz_attempts for delete using (public.is_admin());
+create policy "read own or admin attempts" on public.quiz_attempts for select using ((select public.is_admin()) or user_id = (select auth.uid()));
+create policy "insert own attempts" on public.quiz_attempts for insert with check ((select auth.uid()) is not null and user_id = (select auth.uid()));
+create policy "teacher update attempts" on public.quiz_attempts for update using ((select public.is_admin()));
+create policy "teacher delete attempts" on public.quiz_attempts for delete using ((select public.is_admin()));
 
 create index if not exists quiz_attempts_user_id_idx on public.quiz_attempts(user_id);
+create index if not exists questions_topic_id_idx on public.questions(topic_id);
+create index if not exists quiz_attempts_topic_id_idx on public.quiz_attempts(topic_id);

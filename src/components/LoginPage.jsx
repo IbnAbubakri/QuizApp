@@ -6,12 +6,12 @@ import Logo from './Logo'
 
 const getErrorMessage = (error) => {
   if (!error) return 'Something went wrong. Please try again.'
-  const msg = error.message || String(error)
+  const msg = error.message || ''
   if (msg === 'Invalid login credentials')
     return 'Incorrect email or password. Please try again.'
   if (msg === 'Email not confirmed')
     return 'Please confirm your email address first. Check your inbox for the confirmation link.'
-  return msg
+  return 'Something went wrong. Please try again.'
 }
 
 export default function LoginPage({ onSwitch }) {

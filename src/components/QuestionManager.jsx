@@ -19,17 +19,20 @@ export default function QuestionManager({ topic, onBack, onRefresh }) {
 
   const loadQuestions = useCallback(async () => {
     setLoading(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('questions')
       .select('*')
       .eq('topic_id', topic.id)
       .order('created_at')
+    if (error) throw error
     setQuestions(data || [])
     setLoading(false)
   }, [topic.id])
 
   useEffect(() => {
-    loadQuestions()
+    loadQuestions().catch((e) =>
+      showMessage('Failed to load questions: ' + e.message, 'error')
+    )
   }, [loadQuestions])
 
   const showMessage = (text, tone = 'info') => {
@@ -77,9 +80,11 @@ export default function QuestionManager({ topic, onBack, onRefresh }) {
     setBusy(true)
     try {
       if (editing) {
-        await supabase.from('questions').update(payload).eq('id', editing.id)
+        const { error } = await supabase.from('questions').update(payload).eq('id', editing.id)
+        if (error) throw error
       } else {
-        await supabase.from('questions').insert(payload)
+        const { error } = await supabase.from('questions').insert(payload)
+        if (error) throw error
       }
       await loadQuestions()
       await onRefresh()
@@ -97,7 +102,8 @@ export default function QuestionManager({ topic, onBack, onRefresh }) {
   const doDeleteQuestion = async (q) => {
     setBusy(true)
     try {
-      await supabase.from('questions').delete().eq('id', q.id)
+      const { error } = await supabase.from('questions').delete().eq('id', q.id)
+      if (error) throw error
       await loadQuestions()
       await onRefresh()
       showMessage('Question deleted', 'success')

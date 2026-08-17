@@ -67,6 +67,7 @@ export function useQuiz(questions, durationMs = QUIZ_DURATION_MS, initial = null
       setAnswers((prev) => {
         const next = [...prev]
         next[current] = {
+          id: question.id,
           question: question.question,
           chosen: index,
           chosenText: question.options[index],

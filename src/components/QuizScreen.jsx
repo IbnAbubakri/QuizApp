@@ -16,8 +16,8 @@ const formatTime = (ms) => {
   return `${h}:${pad(m)}:${pad(s)}`
 }
 
-export default function QuizScreen({ topic, quiz, user, onExit }) {
-  const { question, current, total, selected, selectAnswer, goTo, next, prev, timeLeft, answers, score, answeredCount } =
+export default function QuizScreen({ topic, quiz, questions, onExit }) {
+  const { question, current, total, selected, selectAnswer, goTo, next, prev, timeLeft, answers, answeredCount } =
     quiz
   const progress = total > 0 ? ((current + 1) / total) * 100 : 0
   const urgent = timeLeft <= LOW_TIME_MS
@@ -29,7 +29,7 @@ export default function QuizScreen({ topic, quiz, user, onExit }) {
   const handleExit = async () => {
     setSaving(true)
     setSaveError('')
-    const error = await saveAttempt({ user, topic, score, total, answers })
+    const error = await saveAttempt({ topic, questions, answers })
     setSaving(false)
     if (error) {
       setSaveError('Could not save your result. Please check your connection and try again.')

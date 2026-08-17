@@ -38,8 +38,7 @@ export default function StudentDashboard({ user, onBack }) {
             .from('quiz_attempts')
             .select('*')
             .eq('user_id', user.id)
-            .order('created_at', { ascending: false })
-            .limit(100),
+            .order('created_at', { ascending: false }),
           supabase.from('topics').select('id, name, accent'),
         ])
         if (attemptsRes.error) throw attemptsRes.error
@@ -197,18 +196,11 @@ export default function StudentDashboard({ user, onBack }) {
                   className="dash-attempt"
                   style={{ '--accent': topicAccent(attempt) }}
                 >
-                  <div
-                    className="dash-attempt-main"
-                    role="button"
-                    tabIndex={0}
+                  <button
+                    type="button"
+                    className="dash-attempt-main row-btn"
                     aria-expanded={isOpen}
                     onClick={() => setExpanded(isOpen ? null : attempt.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        setExpanded(isOpen ? null : attempt.id)
-                      }
-                    }}
                   >
                     <span className="dash-attempt-tile">
                       <TopicIcon topic={topicMap[attempt.topic_name]} size={22} />
@@ -238,18 +230,10 @@ export default function StudentDashboard({ user, onBack }) {
                     <span className={`dash-attempt-percent ${passed ? 'pass' : 'fail'}`}>
                       {attempt.percent}%
                     </span>
-                    <button
-                      className="icon-btn"
-                      type="button"
-                      title={isOpen ? 'Hide details' : 'Show details'}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setExpanded(isOpen ? null : attempt.id)
-                      }}
-                    >
+                    <span className="chevron" aria-hidden="true">
                       {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                    </button>
-                  </div>
+                    </span>
+                  </button>
 
                   {isOpen && (
                     <div className="attempt-detail">
@@ -265,7 +249,9 @@ export default function StudentDashboard({ user, onBack }) {
                               <span className="failure-number">#{f.number}</span>
                               <span className="failure-question">{f.question}</span>
                             </div>
-                            <p className="review-wrong-answer">Your answer: {f.yourAnswer}</p>
+                            <p className="review-wrong-answer">
+                              Your answer: {f.yourAnswer ?? 'Not answered'}
+                            </p>
                             <p className="review-correct-answer">
                               Correct answer: {f.correctAnswer}
                             </p>

@@ -4,7 +4,7 @@ import { displayName } from '../lib/AuthContext'
 import { saveAttempt } from '../lib/saveAttempt'
 import TopicIcon from './TopicIcon'
 
-export default function SubmitScreen({ topic, quiz, user, onSubmitted, onExit }) {
+export default function SubmitScreen({ topic, quiz, user, questions, onSubmitted, onExit }) {
   const { score, total, answers } = quiz
   const studentName = displayName(user) || 'Student'
   const [saving, setSaving] = useState(false)
@@ -15,7 +15,7 @@ export default function SubmitScreen({ topic, quiz, user, onSubmitted, onExit })
     if (saving) return
     setSaving(true)
     setSaveError('')
-    const error = await saveAttempt({ user, topic, score, total, answers })
+    const error = await saveAttempt({ topic, questions, answers })
     setSaving(false)
     if (error) {
       setSaveError('Could not submit your result. Please check your connection and try again.')

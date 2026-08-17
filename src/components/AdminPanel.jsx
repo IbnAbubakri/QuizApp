@@ -60,9 +60,11 @@ export default function AdminPanel({ topics, onRefresh, onLogout }) {
     setBusy(true)
     try {
       if (editing) {
-        await supabase.from('topics').update(form).eq('id', editing.id)
+        const { error } = await supabase.from('topics').update(form).eq('id', editing.id)
+        if (error) throw error
       } else {
-        await supabase.from('topics').insert(form)
+        const { error } = await supabase.from('topics').insert(form)
+        if (error) throw error
       }
       await onRefresh()
       setEditing(null)
@@ -78,7 +80,8 @@ export default function AdminPanel({ topics, onRefresh, onLogout }) {
   const doDeleteTopic = async (topic) => {
     setBusy(true)
     try {
-      await supabase.from('topics').delete().eq('id', topic.id)
+      const { error } = await supabase.from('topics').delete().eq('id', topic.id)
+      if (error) throw error
       await onRefresh()
       showMessage('Topic deleted', 'success')
     } catch (err) {
@@ -101,7 +104,8 @@ export default function AdminPanel({ topics, onRefresh, onLogout }) {
     const willOpen = topic.is_open === false
     setBusy(true)
     try {
-      await supabase.from('topics').update({ is_open: willOpen }).eq('id', topic.id)
+      const { error } = await supabase.from('topics').update({ is_open: willOpen }).eq('id', topic.id)
+      if (error) throw error
       await onRefresh()
       showMessage(willOpen ? `"${topic.name}" opened for students` : `"${topic.name}" locked`)
     } catch (err) {
@@ -115,7 +119,7 @@ export default function AdminPanel({ topics, onRefresh, onLogout }) {
     setSeeding(true)
     try {
       for (const topic of seedTopics) {
-        const { data: inserted } = await supabase
+        const { data: inserted, error: insertError } = await supabase
           .from('topics')
           .insert({
             name: topic.name,
@@ -124,8 +128,9 @@ export default function AdminPanel({ topics, onRefresh, onLogout }) {
           })
           .select()
           .single()
+        if (insertError) throw insertError
 
-        await supabase.from('questions').insert(
+        const { error: qError } = await supabase.from('questions').insert(
           topic.questions.map((q) => ({
             topic_id: inserted.id,
             question: q.question,
@@ -133,6 +138,7 @@ export default function AdminPanel({ topics, onRefresh, onLogout }) {
             answer: q.answer,
           }))
         )
+        if (qError) throw qError
       }
       await onRefresh()
       showMessage('Sample topics and questions imported', 'success')

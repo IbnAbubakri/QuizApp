@@ -14,11 +14,13 @@ const AdminLogin = lazy(() => import('./components/AdminLogin'))
 const AdminPanel = lazy(() => import('./components/AdminPanel'))
 const StudentDashboard = lazy(() => import('./components/StudentDashboard'))
 
-const DRAFT_KEY = 'quizapp:draft'
+const DRAFT_PREFIX = 'quizapp:draft'
 
-const loadDraft = () => {
+const draftKey = (userId) => (userId ? `${DRAFT_PREFIX}:${userId}` : DRAFT_PREFIX)
+
+const loadDraft = (userId) => {
   try {
-    const raw = localStorage.getItem(DRAFT_KEY)
+    const raw = localStorage.getItem(draftKey(userId))
     if (!raw) return null
     const draft = JSON.parse(raw)
     if (!draft?.topic || !Array.isArray(draft?.questions) || draft.questions.length === 0) {
@@ -30,9 +32,9 @@ const loadDraft = () => {
   }
 }
 
-const clearDraft = () => {
+const clearDraft = (userId) => {
   try {
-    localStorage.removeItem(DRAFT_KEY)
+    localStorage.removeItem(draftKey(userId))
   } catch {
     /* storage unavailable */
   }
@@ -66,8 +68,9 @@ export default function App() {
   const [quizQuestions, setQuizQuestions] = useState([])
   const [quizKey, setQuizKey] = useState(0)
   const [authView, setAuthView] = useState('login')
-  const [draft, setDraft] = useState(loadDraft)
+  const [draft, setDraft] = useState(null)
   const [draftInitial, setDraftInitial] = useState(null)
+  const [resuming, setResuming] = useState(false)
 
   const { user, initializing, signOut } = useAuth()
 
@@ -92,6 +95,14 @@ export default function App() {
         setView('home')
       }
     }
+  }, [user, isAdmin])
+
+  useEffect(() => {
+    if (!user || isAdmin) {
+      setDraft(null)
+      return
+    }
+    setDraft(loadDraft(user.id))
   }, [user, isAdmin])
 
   useEffect(() => {
@@ -123,22 +134,22 @@ export default function App() {
   const { current: quizCurrent, answers: quizAnswers, timeLeft: quizTimeLeft, finished: quizFinished } = quiz
 
   useEffect(() => {
-    if (view !== 'quiz' || quizQuestions.length === 0 || !activeTopic) return
+    if (view !== 'quiz' || quizQuestions.length === 0 || !activeTopic || !user || isAdmin) return
     const saved = {
       topic: activeTopic,
-      questions: quizQuestions,
+      questions: quizQuestions.map((q) => ({ id: q.id, question: q.question, options: q.options })),
       current: quizCurrent,
-      answers: quizAnswers,
+      answers: quizAnswers.map((a) => (a ? { chosen: a.chosen } : null)),
       timeLeft: quizTimeLeft,
       finished: quizFinished,
       savedAt: Date.now(),
     }
     try {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(saved))
+      localStorage.setItem(draftKey(user.id), JSON.stringify(saved))
     } catch {
       /* storage unavailable */
     }
-  }, [view, quizQuestions, activeTopic, quizCurrent, quizAnswers, quizTimeLeft, quizFinished])
+  }, [view, quizQuestions, activeTopic, quizCurrent, quizAnswers, quizTimeLeft, quizFinished, user, isAdmin])
 
   const refreshTopics = useCallback(async () => {
     const { data, error } = await supabase
@@ -168,33 +179,74 @@ export default function App() {
     setActiveTopic(topic)
     setView('quiz')
     setDraftInitial(null)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('questions')
       .select('*')
       .eq('topic_id', topic.id)
       .order('created_at')
+    if (error) {
+      setError(`Could not load questions: ${error.message}`)
+      setView('home')
+      return
+    }
     quiz.restart()
     setQuizQuestions(shuffleQuestions(data || []))
     setQuizKey((k) => k + 1)
   }
 
-  const resumeQuiz = () => {
-    if (!draft) return
-    setActiveTopic(draft.topic)
-    setQuizQuestions(draft.questions)
-    setDraftInitial({
-      current: draft.current ?? 0,
-      answers: draft.answers,
-      timeLeft: draft.timeLeft,
-      finished: draft.finished,
-    })
-    setQuizKey((k) => k + 1)
-    setDraft(null)
-    setView('quiz')
+  const resumeQuiz = async () => {
+    if (!draft || !user) return
+    setResuming(true)
+    try {
+      const { data: dbQuestions, error } = await supabase
+        .from('questions')
+        .select('id, question, options, answer, explanation')
+        .eq('topic_id', draft.topic.id)
+      if (error) throw error
+      const byId = new Map((dbQuestions || []).map((q) => [q.id, q]))
+      const restoredQuestions = draft.questions.map((dq) => {
+        const dbq = byId.get(dq.id)
+        if (!dbq) return { ...dq, answer: -1, explanation: '' }
+        return {
+          id: dq.id,
+          question: dq.question,
+          options: dq.options,
+          answer: dq.options.indexOf(dbq.options[dbq.answer]),
+          explanation: dbq.explanation || '',
+        }
+      })
+      const restoredAnswers = draft.answers.map((a, i) => {
+        const q = restoredQuestions[i]
+        if (!a || a.chosen == null || !q) return null
+        return {
+          question: q.question,
+          chosen: a.chosen,
+          chosenText: q.options[a.chosen],
+          correctText: q.options[q.answer],
+          explanation: q.explanation || '',
+          correct: a.chosen === q.answer,
+        }
+      })
+      setActiveTopic(draft.topic)
+      setQuizQuestions(restoredQuestions)
+      setDraftInitial({
+        current: draft.current ?? 0,
+        answers: restoredAnswers,
+        timeLeft: draft.timeLeft,
+        finished: draft.finished,
+      })
+      setQuizKey((k) => k + 1)
+      setDraft(null)
+      setView('quiz')
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setResuming(false)
+    }
   }
 
   const discardDraft = () => {
-    clearDraft()
+    clearDraft(user?.id)
     setDraft(null)
   }
 
@@ -207,7 +259,7 @@ export default function App() {
   }
 
   const exitQuiz = () => {
-    clearDraft()
+    clearDraft(user?.id)
     setDraft(null)
     setView('home')
     setQuizQuestions([])
@@ -270,9 +322,25 @@ export default function App() {
     )
   }
 
+  if (resuming) {
+    return (
+      <div className="auth-screen">
+        <Logo withText />
+        <div className="spinner" role="status" aria-label="Resuming quiz" />
+      </div>
+    )
+  }
+
   if (view === 'quiz') {
     return (
-      <QuizScreen key={quizKey} topic={activeTopic} quiz={quiz} user={user} onExit={exitQuiz} />
+      <QuizScreen
+        key={quizKey}
+        topic={activeTopic}
+        quiz={quiz}
+        user={user}
+        questions={quizQuestions}
+        onExit={exitQuiz}
+      />
     )
   }
 
@@ -282,8 +350,9 @@ export default function App() {
         topic={activeTopic}
         quiz={quiz}
         user={user}
+        questions={quizQuestions}
         onSubmitted={() => {
-          clearDraft()
+          clearDraft(user?.id)
           setView('result')
         }}
         onExit={exitQuiz}

@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 export const QUIZ_DURATION_MS = 90 * 60 * 1000
 
 export const topicDurationMs = (topic) => {
-  if (topic?.name?.toLowerCase().includes('binary')) return 3 * 60 * 60 * 1000
+  if (topic?.name?.toLowerCase().includes('binary')) return 4 * 60 * 60 * 1000
   return QUIZ_DURATION_MS
 }
 

@@ -1,14 +1,21 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Save, Home, UserRound } from 'lucide-react'
 import { displayName } from '../lib/AuthContext'
 import { saveAttempt } from '../lib/saveAttempt'
 import TopicIcon from './TopicIcon'
 
 export default function SubmitScreen({ topic, quiz, user, questions, onSubmitted, onExit }) {
-  const { score, total, answers } = quiz
+  const { score, total, answers, timedOut } = quiz
   const studentName = displayName(user) || 'Student'
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+
+  useEffect(() => {
+    if (timedOut && !saving) {
+      saveResult(new Event('submit'))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timedOut])
 
   const saveResult = async (e) => {
     e.preventDefault()

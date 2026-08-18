@@ -24,6 +24,7 @@ export function useQuiz(questions, durationMs = QUIZ_DURATION_MS, initial = null
     initial?.answers ?? Array(questions.length).fill(null)
   )
   const [finished, setFinished] = useState(initial?.finished ?? false)
+  const [timedOut, setTimedOut] = useState(false)
   const [timeLeft, setTimeLeft] = useState(initial?.timeLeft ?? durationMs)
 
   const question = questions[current]
@@ -53,6 +54,7 @@ export function useQuiz(questions, durationMs = QUIZ_DURATION_MS, initial = null
         if (t <= 1000) {
           clearInterval(interval)
           setFinished(true)
+          setTimedOut(true)
           return 0
         }
         return t - 1000
@@ -105,6 +107,7 @@ export function useQuiz(questions, durationMs = QUIZ_DURATION_MS, initial = null
     setCurrent(0)
     setAnswers(Array(questions.length).fill(null))
     setFinished(false)
+    setTimedOut(false)
     setTimeLeft(durationMs)
   }, [questions.length, durationMs])
 
@@ -117,6 +120,7 @@ export function useQuiz(questions, durationMs = QUIZ_DURATION_MS, initial = null
     score,
     answeredCount,
     finished,
+    timedOut,
     timeLeft,
     selectAnswer,
     goTo,

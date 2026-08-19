@@ -6,8 +6,8 @@ export const saveAttempt = async ({ topic, questions, answers }) => {
     byQuestionId[q.id] = answers?.[i]?.chosen ?? null
   })
   const { error } = await supabase.rpc('submit_attempt', {
-    topic_id: topic.id,
-    answers: byQuestionId,
+    p_topic_id: topic.id,
+    p_answers: byQuestionId,
   })
   return error
 }

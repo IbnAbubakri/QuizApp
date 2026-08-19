@@ -217,10 +217,7 @@ export default function AdminPanel({ topics, onRefresh, onLogout }) {
                   <h3>{topic.name}</h3>
                   <p>{topic.description}</p>
                   <span className="topic-count">
-                    {topic?.name?.toLowerCase().includes('binary')
-                      ? Math.min(topic.question_count ?? 0, 50)
-                      : topic.question_count ?? 0}{' '}
-                    questions
+                    {Math.min(topic.question_count ?? 0, 50)} questions
                   </span>
                   <span
                     className={`topic-status ${topic.is_open === false ? 'locked' : 'open'}`}

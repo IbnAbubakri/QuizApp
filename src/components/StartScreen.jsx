@@ -28,8 +28,7 @@ export default function StartScreen({
   const prettyName = firstName.charAt(0).toUpperCase() + firstName.slice(1)
   const totalQuestions = topics.reduce((sum, t) => {
     const count = t.question_count || 0
-    if (t.name?.toLowerCase().includes('binary')) return sum + Math.min(count, 50)
-    return sum + count
+    return sum + Math.min(count, 50)
   }, 0)
   const isLocked = (t) => t.is_open === false
 
@@ -179,10 +178,7 @@ export default function StartScreen({
                       </span>
                     ) : (
                       <span className="category-meta">
-                        {topic?.name?.toLowerCase().includes('binary')
-                          ? Math.min(topic.question_count ?? 0, 50)
-                          : topic.question_count ?? 0}{' '}
-                        questions
+                        {Math.min(topic.question_count ?? 0, 50)} questions
                       </span>
                     )}
                   </div>

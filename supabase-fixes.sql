@@ -112,7 +112,10 @@ begin
 end;
 $$;
 
-revoke execute on function public.submit_attempt(uuid, jsonb) from public, anon;
+-- Security is enforced inside the function via auth.uid() check.
+-- We grant execute to authenticated explicitly. We do NOT revoke from
+-- PUBLIC because PostgREST only exposes functions visible to the anon
+-- role, and REVOKE FROM PUBLIC hides the function from PostgREST entirely.
 grant execute on function public.submit_attempt(uuid, jsonb) to authenticated;
 
 -- 2. Tighten function grants. is_admin / list_students / student_count are

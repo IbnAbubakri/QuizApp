@@ -20,8 +20,8 @@ describe('saveAttempt', () => {
       answers: [{ chosen: 0 }, { chosen: null }],
     })
     expect(supabase.rpc).toHaveBeenCalledWith('submit_attempt', {
-      topic_id: 't1',
-      answers: { q1: 0, q2: null },
+      p_topic_id: 't1',
+      p_answers: { q1: 0, q2: null },
     })
   })
 
@@ -32,8 +32,8 @@ describe('saveAttempt', () => {
       answers: [],
     })
     expect(supabase.rpc).toHaveBeenCalledWith('submit_attempt', {
-      topic_id: 't1',
-      answers: { q1: null, q2: null },
+      p_topic_id: 't1',
+      p_answers: { q1: null, q2: null },
     })
   })
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 
-export const QUIZ_DURATION_MS = 90 * 60 * 1000
+export const QUIZ_DURATION_MS = 2 * 60 * 1000
 
 export const topicDurationMs = () => QUIZ_DURATION_MS
 

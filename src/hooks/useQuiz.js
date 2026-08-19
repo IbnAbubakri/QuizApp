@@ -2,10 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 
 export const QUIZ_DURATION_MS = 90 * 60 * 1000
 
-export const topicDurationMs = (topic) => {
-  if (topic?.name?.toLowerCase().includes('binary')) return 4 * 60 * 60 * 1000
-  return QUIZ_DURATION_MS
-}
+export const topicDurationMs = () => QUIZ_DURATION_MS
 
 export const formatDuration = (ms) => {
   const minutes = Math.round(ms / 60000)

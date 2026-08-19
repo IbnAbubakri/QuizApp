@@ -89,9 +89,9 @@ describe('useQuiz', () => {
     expect(result.current.timeLeft).toBe(custom)
   })
 
-  it('gives the binary topic a four hour timer and others the default', () => {
+  it('returns the default duration for all topics', () => {
     expect(topicDurationMs({ name: 'Binary Number (Addition, Subtraction and Multiplication)' })).toBe(
-      4 * 60 * 60 * 1000
+      QUIZ_DURATION_MS
     )
     expect(topicDurationMs({ name: 'Number Basics' })).toBe(QUIZ_DURATION_MS)
     expect(topicDurationMs(null)).toBe(QUIZ_DURATION_MS)

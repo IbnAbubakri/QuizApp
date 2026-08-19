@@ -190,7 +190,11 @@ export default function App() {
       return
     }
     quiz.restart()
-    setQuizQuestions(shuffleQuestions(data || []))
+    let questions = shuffleQuestions(data || [])
+    if (topic?.name?.toLowerCase().includes('binary') && questions.length > 50) {
+      questions = questions.slice(0, 50)
+    }
+    setQuizQuestions(questions)
     setQuizKey((k) => k + 1)
   }
 

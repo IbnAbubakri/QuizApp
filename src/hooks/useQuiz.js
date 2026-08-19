@@ -34,6 +34,7 @@ export function useQuiz(questions, durationMs = QUIZ_DURATION_MS, initial = null
       setAnswers(initial.answers ?? Array(questions.length).fill(null))
       setCurrent(initial.current ?? 0)
       setFinished(!!initial.finished)
+      setTimedOut(!!initial.timedOut)
       setTimeLeft(initial.timeLeft ?? durationMs)
     } else {
       setAnswers(Array(questions.length).fill(null))

@@ -142,6 +142,7 @@ export default function App() {
       answers: quizAnswers.map((a) => (a ? { chosen: a.chosen } : null)),
       timeLeft: quizTimeLeft,
       finished: quizFinished,
+      timedOut: quiz.timedOut,
       savedAt: Date.now(),
     }
     try {
@@ -238,6 +239,7 @@ export default function App() {
         answers: restoredAnswers,
         timeLeft: draft.timeLeft,
         finished: draft.finished,
+        timedOut: draft.timedOut,
       })
       setQuizKey((k) => k + 1)
       setDraft(null)

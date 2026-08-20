@@ -73,7 +73,7 @@ export default function StudentDashboard({ user, onBack }) {
   const ringOffset = RING_CIRC * (1 - average / 100)
 
   return (
-    <div className="dash">
+    <div className="dash" id="main-content">
       <header className="admin-header">
         <button className="back-btn" onClick={onBack} aria-label="Back to topics">
           <ArrowLeft size={18} />

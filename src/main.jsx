@@ -7,6 +7,9 @@ import './App.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
+    <a href="#main-content" className="skip-link">
+      Skip to content
+    </a>
     <ErrorBoundary>
       <AuthProvider>
         <App />

@@ -56,7 +56,7 @@ export default function ResultScreen({ topic, quiz, onRestart, onExit }) {
           : 'Keep going — practice makes perfect!'
 
   return (
-    <div className="result">
+    <div className="result" id="main-content">
       {percent >= 60 && (
         <div className="confetti" aria-hidden="true">
           {confetti.map((c) => (

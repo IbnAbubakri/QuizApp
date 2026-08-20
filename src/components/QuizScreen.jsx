@@ -51,7 +51,7 @@ export default function QuizScreen({ topic, quiz, questions, onExit }) {
   }
 
   return (
-    <div className="quiz">
+    <div className="quiz" id="main-content">
       <div className="page-top">
         <button
           className="back-btn"

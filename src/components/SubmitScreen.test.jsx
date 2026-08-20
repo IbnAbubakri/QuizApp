@@ -75,7 +75,7 @@ describe('SubmitScreen', () => {
     expect(onSubmitted).not.toHaveBeenCalled()
   })
 
-  it('exits to topics without saving', () => {
+  it('exits to topics after successful submit', async () => {
     const onExit = vi.fn()
     render(
       <SubmitScreen
@@ -87,7 +87,9 @@ describe('SubmitScreen', () => {
         onExit={onExit}
       />
     )
-    fireEvent.click(screen.getByRole('button', { name: /^Topics$/ }))
+    fireEvent.click(screen.getByRole('button', { name: /submit/i }))
+    await waitFor(() => expect(saveAttempt).toHaveBeenCalled())
+    fireEvent.click(screen.getByRole('button', { name: /back to topics/i }))
     expect(onExit).toHaveBeenCalled()
   })
 })

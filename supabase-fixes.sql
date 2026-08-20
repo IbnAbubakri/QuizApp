@@ -9,7 +9,8 @@
 --    so it can only touch rows the signed-in student is allowed to touch.
 create or replace function public.submit_attempt(
   p_topic_id uuid,
-  p_answers jsonb
+  p_answers jsonb,
+  p_question_ids uuid[] default null
 )
 returns table (
   id uuid,
@@ -55,6 +56,7 @@ begin
     select q.id, q.question, q.options, q.answer, q.explanation
     from public.questions q
     where q.topic_id = p_topic_id
+      and (p_question_ids is null or q.id = any(p_question_ids))
     order by q.created_at, q.id
   loop
     v_total := v_total + 1;
@@ -116,7 +118,7 @@ $$;
 -- We grant execute to authenticated explicitly. We do NOT revoke from
 -- PUBLIC because PostgREST only exposes functions visible to the anon
 -- role, and REVOKE FROM PUBLIC hides the function from PostgREST entirely.
-grant execute on function public.submit_attempt(uuid, jsonb) to authenticated;
+grant execute on function public.submit_attempt(uuid, jsonb, uuid[]) to authenticated;
 
 -- 2. Tighten function grants. is_admin / list_students / student_count are
 --    SECURITY DEFINER and must never be callable by anon. (REVOKE ALL from

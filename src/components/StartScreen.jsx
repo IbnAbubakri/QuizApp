@@ -41,7 +41,7 @@ export default function StartScreen({
   }
 
   return (
-    <div className="home">
+    <div className="home" id="main-content">
       <header className="topbar">
         <Logo withText />
         <div className="topbar-right">

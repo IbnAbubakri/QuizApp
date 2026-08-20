@@ -8,6 +8,7 @@ import SubmitScreen from './components/SubmitScreen'
 import ResultScreen from './components/ResultScreen'
 import LoginPage from './components/LoginPage'
 import RegisterPage from './components/RegisterPage'
+import ForgotPassword from './components/ForgotPassword'
 import Logo from './components/Logo'
 
 const AdminLogin = lazy(() => import('./components/AdminLogin'))
@@ -63,11 +64,11 @@ export default function App() {
   const [topics, setTopics] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [view, setView] = useState('home') // home | quiz | submit | result | dashboard | admin-login | admin
+  const [view, setView] = useState('home') // home | quiz | submit | result | dashboard | admin-login | admin | not-found
   const [activeTopic, setActiveTopic] = useState(null)
   const [quizQuestions, setQuizQuestions] = useState([])
   const [quizKey, setQuizKey] = useState(0)
-  const [authView, setAuthView] = useState('login')
+  const [authView, setAuthView] = useState('login') // login | register | forgot
   const [draft, setDraft] = useState(null)
   const [draftInitial, setDraftInitial] = useState(null)
   const [resuming, setResuming] = useState(false)
@@ -89,10 +90,13 @@ export default function App() {
   useEffect(() => {
     if (prevUserRef.current !== user) {
       prevUserRef.current = user
-      if (window.location.pathname === '/admin') {
+      const path = window.location.pathname
+      if (path === '/admin') {
         setView(isAdmin ? 'admin' : 'admin-login')
-      } else {
+      } else if (path === '/' || path === '') {
         setView('home')
+      } else {
+        setView('not-found')
       }
     }
   }, [user, isAdmin])
@@ -107,10 +111,13 @@ export default function App() {
 
   useEffect(() => {
     const syncFromPath = () => {
-      if (window.location.pathname === '/admin') {
+      const path = window.location.pathname
+      if (path === '/admin') {
         setView(isAdmin ? 'admin' : 'admin-login')
-      } else {
+      } else if (path === '/' || path === '') {
         setView('home')
+      } else {
+        setView('not-found')
       }
     }
     window.addEventListener('popstate', syncFromPath)
@@ -150,7 +157,7 @@ export default function App() {
     } catch {
       /* storage unavailable */
     }
-  }, [view, quizQuestions, activeTopic, quizCurrent, quizAnswers, quizTimeLeft, quizFinished, user, isAdmin])
+  }, [view, quizQuestions, activeTopic, quizCurrent, quizAnswers, quizTimeLeft, quizFinished, user, isAdmin, quiz.timedOut])
 
   const refreshTopics = useCallback(async () => {
     const { data, error } = await supabase
@@ -321,8 +328,14 @@ export default function App() {
   }
 
   if (!user) {
+    if (authView === 'forgot') {
+      return <ForgotPassword onBack={() => setAuthView('login')} />
+    }
     return authView === 'login' ? (
-      <LoginPage onSwitch={() => setAuthView('register')} />
+      <LoginPage
+        onSwitch={() => setAuthView('register')}
+        onForgotPassword={() => setAuthView('forgot')}
+      />
     ) : (
       <RegisterPage onSwitch={() => setAuthView('login')} />
     )
@@ -369,6 +382,30 @@ export default function App() {
   if (view === 'result') {
     return (
       <ResultScreen topic={activeTopic} quiz={quiz} onRestart={restartQuiz} onExit={exitQuiz} />
+    )
+  }
+
+  if (view === 'not-found') {
+    return (
+      <div className="auth-screen">
+        <Logo withText />
+        <div className="auth-card">
+          <div className="login-icon">
+            <span style={{ fontSize: 28 }}>404</span>
+          </div>
+          <h1>Page not found</h1>
+          <p>The page you&apos;re looking for doesn&apos;t exist.</p>
+          <button
+            className="primary-btn full-width"
+            onClick={() => {
+              window.history.pushState({}, '', '/')
+              setView('home')
+            }}
+          >
+            Go to home
+          </button>
+        </div>
+      </div>
     )
   }
 

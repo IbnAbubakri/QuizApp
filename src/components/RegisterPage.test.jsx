@@ -7,10 +7,10 @@ const { signUp } = vi.hoisted(() => ({ signUp: vi.fn() }))
 vi.mock('../lib/AuthContext', () => ({ useAuth: () => ({ signUp }) }))
 
 const fill = () => {
-  fireEvent.change(screen.getByLabelText('Full name'), { target: { value: 'Ali B' } })
-  fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'a@b.com' } })
-  fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'Passw0rd!' } })
-  fireEvent.change(screen.getByLabelText('Confirm password'), { target: { value: 'Passw0rd!' } })
+  fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Ali B' } })
+  fireEvent.change(screen.getByLabelText(/Email/), { target: { value: 'a@b.com' } })
+  fireEvent.change(screen.getByLabelText(/^Password/), { target: { value: 'Passw0rd!' } })
+  fireEvent.change(screen.getByLabelText(/Confirm password/), { target: { value: 'Passw0rd!' } })
   fireEvent.click(screen.getByLabelText(/I agree to use this app/))
 }
 
@@ -30,10 +30,10 @@ describe('RegisterPage', () => {
 
   it('shows a mismatch error when passwords differ', async () => {
     render(<RegisterPage onSwitch={vi.fn()} />)
-    fireEvent.change(screen.getByLabelText('Full name'), { target: { value: 'Ali B' } })
-    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'a@b.com' } })
-    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'Passw0rd!' } })
-    fireEvent.change(screen.getByLabelText('Confirm password'), { target: { value: 'nope' } })
+    fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Ali B' } })
+    fireEvent.change(screen.getByLabelText(/Email/), { target: { value: 'a@b.com' } })
+    fireEvent.change(screen.getByLabelText(/^Password/), { target: { value: 'Passw0rd!' } })
+    fireEvent.change(screen.getByLabelText(/Confirm password/), { target: { value: 'nope' } })
     fireEvent.click(screen.getByLabelText(/I agree to use this app/))
     submitForm()
     expect(await screen.findByText('Passwords do not match.')).toBeInTheDocument()
@@ -42,10 +42,10 @@ describe('RegisterPage', () => {
 
   it('requires accepting the terms', async () => {
     render(<RegisterPage onSwitch={vi.fn()} />)
-    fireEvent.change(screen.getByLabelText('Full name'), { target: { value: 'Ali B' } })
-    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'a@b.com' } })
-    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'Passw0rd!' } })
-    fireEvent.change(screen.getByLabelText('Confirm password'), { target: { value: 'Passw0rd!' } })
+    fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Ali B' } })
+    fireEvent.change(screen.getByLabelText(/Email/), { target: { value: 'a@b.com' } })
+    fireEvent.change(screen.getByLabelText(/^Password/), { target: { value: 'Passw0rd!' } })
+    fireEvent.change(screen.getByLabelText(/Confirm password/), { target: { value: 'Passw0rd!' } })
     submitForm()
     expect(
       await screen.findByText('Please accept the terms to continue.')

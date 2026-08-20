@@ -45,7 +45,8 @@ export default function RegisterPage({ onSwitch }) {
     if (nm) errs.name = nm
     if (em) errs.email = em
     if (pw) errs.password = pw
-    if (password !== confirmPassword) errs.confirm = 'Passwords do not match.'
+    if (!confirmPassword) errs.confirm = 'Please confirm your password.'
+    else if (password !== confirmPassword) errs.confirm = 'Passwords do not match.'
     if (!acceptedTerms) errs.terms = 'Please accept the terms to continue.'
     setErrors(errs)
     if (Object.keys(errs).length) return
@@ -65,7 +66,7 @@ export default function RegisterPage({ onSwitch }) {
 
   if (needsConfirm) {
     return (
-      <div className="auth-screen">
+      <div className="auth-screen" id="main-content" role="main">
         <Logo withText />
         <div className="auth-card">
           <div className="login-icon">
@@ -91,9 +92,14 @@ export default function RegisterPage({ onSwitch }) {
   }
 
   return (
-    <div className="auth-screen">
+    <div className="auth-screen" id="main-content" role="main">
       <Logo withText />
-      <form className="auth-card" onSubmit={handleSubmit}>
+      <form
+        className="auth-card"
+        onSubmit={handleSubmit}
+        aria-label="Student registration"
+        noValidate
+      >
         <div className="login-icon">
           <UserPlus size={28} />
         </div>
@@ -101,11 +107,13 @@ export default function RegisterPage({ onSwitch }) {
         <p>Register once to start taking quizzes.</p>
 
         <div className="form-group">
-          <label htmlFor="reg-name">Full name</label>
+          <label htmlFor="reg-name">
+            Full name <span className="required-star" aria-hidden="true">*</span>
+          </label>
           <input
             id="reg-name"
             type="text"
-            className="auth-input"
+            className={`auth-input ${errors.name ? 'input-error' : ''}`}
             placeholder="Your name"
             value={name}
             onChange={(e) => {
@@ -114,16 +122,25 @@ export default function RegisterPage({ onSwitch }) {
             }}
             autoComplete="name"
             autoFocus
+            required
+            aria-invalid={!!errors.name}
+            aria-describedby={errors.name ? 'reg-name-error' : undefined}
           />
-          {errors.name && <p className="field-error">{errors.name}</p>}
+          {errors.name && (
+            <p className="field-error" id="reg-name-error" role="alert">
+              {errors.name}
+            </p>
+          )}
         </div>
 
         <div className="form-group">
-          <label htmlFor="reg-email">Email</label>
+          <label htmlFor="reg-email">
+            Email <span className="required-star" aria-hidden="true">*</span>
+          </label>
           <input
             id="reg-email"
             type="email"
-            className="auth-input"
+            className={`auth-input ${errors.email ? 'input-error' : ''}`}
             placeholder="you@example.com"
             value={email}
             onChange={(e) => {
@@ -131,17 +148,26 @@ export default function RegisterPage({ onSwitch }) {
               setErrors((prev) => ({ ...prev, email: '' }))
             }}
             autoComplete="email"
+            required
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? 'reg-email-error' : undefined}
           />
-          {errors.email && <p className="field-error">{errors.email}</p>}
+          {errors.email && (
+            <p className="field-error" id="reg-email-error" role="alert">
+              {errors.email}
+            </p>
+          )}
         </div>
 
         <div className="form-group">
-          <label htmlFor="reg-password">Password</label>
+          <label htmlFor="reg-password">
+            Password <span className="required-star" aria-hidden="true">*</span>
+          </label>
           <div className="password-wrap">
             <input
               id="reg-password"
               type={showPassword ? 'text' : 'password'}
-              className="auth-input"
+              className={`auth-input ${errors.password ? 'input-error' : ''}`}
               placeholder="8+ characters, a capital letter and a number"
               value={password}
               onChange={(e) => {
@@ -149,18 +175,22 @@ export default function RegisterPage({ onSwitch }) {
                 setErrors((prev) => ({ ...prev, password: '' }))
               }}
               autoComplete="new-password"
+              required
+              aria-invalid={!!errors.password}
+              aria-describedby={errors.password ? 'reg-password-error' : 'reg-password-strength'}
             />
             <button
               type="button"
               className="eye-btn"
               onClick={() => setShowPassword((s) => !s)}
               aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-pressed={showPassword}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
           {password && (
-            <div className="strength">
+            <div className="strength" id="reg-password-strength">
               <div className="strength-bar">
                 <span
                   className="strength-fill"
@@ -175,15 +205,21 @@ export default function RegisterPage({ onSwitch }) {
               <span className="strength-label">{strength.label}</span>
             </div>
           )}
-          {errors.password && <p className="field-error">{errors.password}</p>}
+          {errors.password && (
+            <p className="field-error" id="reg-password-error" role="alert">
+              {errors.password}
+            </p>
+          )}
         </div>
 
         <div className="form-group">
-          <label htmlFor="reg-confirm">Confirm password</label>
+          <label htmlFor="reg-confirm">
+            Confirm password <span className="required-star" aria-hidden="true">*</span>
+          </label>
           <input
             id="reg-confirm"
             type="password"
-            className="auth-input"
+            className={`auth-input ${errors.confirm ? 'input-error' : ''}`}
             placeholder="Repeat your password"
             value={confirmPassword}
             onChange={(e) => {
@@ -191,8 +227,15 @@ export default function RegisterPage({ onSwitch }) {
               setErrors((prev) => ({ ...prev, confirm: '' }))
             }}
             autoComplete="new-password"
+            required
+            aria-invalid={!!errors.confirm}
+            aria-describedby={errors.confirm ? 'reg-confirm-error' : undefined}
           />
-          {errors.confirm && <p className="field-error">{errors.confirm}</p>}
+          {errors.confirm && (
+            <p className="field-error" id="reg-confirm-error" role="alert">
+              {errors.confirm}
+            </p>
+          )}
         </div>
 
         <label className="terms">
@@ -208,16 +251,27 @@ export default function RegisterPage({ onSwitch }) {
             I agree to use this app for my quizzes and will submit my results honestly.
           </span>
         </label>
-        {errors.terms && <p className="field-error">{errors.terms}</p>}
+        {errors.terms && (
+          <p className="field-error" role="alert">
+            {errors.terms}
+          </p>
+        )}
 
-        {formError && <div className="login-error auth-error">{formError}</div>}
+        {formError && (
+          <div className="login-error auth-error" role="alert">
+            {formError}
+          </div>
+        )}
 
         <button type="submit" className="primary-btn full-width" disabled={loading}>
           {loading ? 'Creating account…' : 'Create account'}
         </button>
 
         <p className="auth-switch">
-          Already have an account? <button type="button" onClick={onSwitch}>Log in</button>
+          Already have an account?{' '}
+          <button type="button" onClick={onSwitch}>
+            Log in
+          </button>
         </p>
       </form>
     </div>

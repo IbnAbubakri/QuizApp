@@ -1,17 +1,20 @@
 import { useState, useEffect } from 'react'
-import { Save, Home, UserRound } from 'lucide-react'
+import { Save, Home, UserRound, RefreshCw, AlertTriangle } from 'lucide-react'
 import { displayName } from '../lib/AuthContext'
 import { saveAttempt } from '../lib/saveAttempt'
 import TopicIcon from './TopicIcon'
+import ConfirmDialog from './ConfirmDialog'
 
 export default function SubmitScreen({ topic, quiz, user, questions, onSubmitted, onExit }) {
   const { score, total, answers, timedOut } = quiz
   const studentName = displayName(user) || 'Student'
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+  const [exitDialog, setExitDialog] = useState(false)
 
   useEffect(() => {
-    if (timedOut && !saving) {
+    if (timedOut && !saving && !submitted) {
       saveResult(new Event('submit'))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -19,7 +22,7 @@ export default function SubmitScreen({ topic, quiz, user, questions, onSubmitted
 
   const saveResult = async (e) => {
     e.preventDefault()
-    if (saving) return
+    if (saving || submitted) return
     setSaving(true)
     setSaveError('')
     const error = await saveAttempt({ topic, questions, answers })
@@ -28,13 +31,22 @@ export default function SubmitScreen({ topic, quiz, user, questions, onSubmitted
       setSaveError('Could not submit your result. Please check your connection and try again.')
       return
     }
+    setSubmitted(true)
     onSubmitted()
+  }
+
+  const handleExit = () => {
+    if (!submitted) {
+      setExitDialog(true)
+    } else {
+      onExit()
+    }
   }
 
   return (
     <div className="result">
       <div className="page-top">
-        <button className="back-btn" onClick={onExit} aria-label="Back to topics">
+        <button className="back-btn" onClick={handleExit} aria-label="Back to topics">
           <Home size={16} />
           <span>Topics</span>
         </button>
@@ -74,20 +86,62 @@ export default function SubmitScreen({ topic, quiz, user, questions, onSubmitted
               Submitting as <strong>{studentName}</strong>
             </span>
           </div>
-          <button type="submit" className="primary-btn" disabled={saving}>
-            <Save size={18} />
-            {saving ? 'Submitting…' : 'Submit'}
+          <button
+            type="submit"
+            className="primary-btn"
+            disabled={saving || submitted}
+            aria-live="polite"
+          >
+            {saving ? (
+              <>
+                <RefreshCw size={18} className="spin" />
+                Submitting…
+              </>
+            ) : submitted ? (
+              'Submitted'
+            ) : (
+              <>
+                <Save size={18} />
+                Submit
+              </>
+            )}
           </button>
-          {saveError && <p className="save-result-error">{saveError}</p>}
+          {saveError && (
+            <p className="save-result-error" role="alert">
+              {saveError}
+            </p>
+          )}
         </form>
 
         <div className="result-actions">
-          <button className="secondary-btn" onClick={onExit}>
+          <button className="secondary-btn" onClick={handleExit}>
             <Home size={18} />
             Topics
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={exitDialog}
+        title="Result not submitted"
+        message={
+          <>
+            <AlertTriangle size={18} style={{ verticalAlign: '-3px', marginRight: 6 }} />
+            Your result hasn&apos;t been submitted yet. If you leave now, Mr. Faaruq won&apos;t
+            receive your score.
+          </>
+        }
+        confirmLabel="Retry submit"
+        cancelLabel="Discard & exit"
+        onConfirm={() => {
+          setExitDialog(false)
+          saveResult(new Event('submit'))
+        }}
+        onCancel={() => {
+          setExitDialog(false)
+          onExit()
+        }}
+      />
     </div>
   )
 }

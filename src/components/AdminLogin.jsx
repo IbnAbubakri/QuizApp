@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Lock, ArrowLeft, LogOut, ShieldAlert } from 'lucide-react'
+import { Lock, ArrowLeft, LogOut, ShieldAlert, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '../lib/AuthContext'
 import { validateEmail } from '../lib/validation'
 
@@ -7,6 +7,7 @@ export default function AdminLogin({ onLogin, onBack }) {
   const { user, signIn, signOut } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -41,7 +42,7 @@ export default function AdminLogin({ onLogin, onBack }) {
 
   if (user && !isAdmin) {
     return (
-      <div className="admin-login">
+      <div className="admin-login" id="main-content" role="main">
         <div className="page-top">
           <button className="back-btn" onClick={onBack} aria-label="Back">
             <ArrowLeft size={16} />
@@ -57,7 +58,7 @@ export default function AdminLogin({ onLogin, onBack }) {
               <div className="page-hero-body">
                 <h1 className="page-hero-title">Teacher access only</h1>
                 <p className="page-hero-sub">
-                  You're signed in as a student. Only the teacher account can manage topics and
+                  You&apos;re signed in as a student. Only the teacher account can manage topics and
                   questions.
                 </p>
               </div>
@@ -84,7 +85,7 @@ export default function AdminLogin({ onLogin, onBack }) {
   }
 
   return (
-    <div className="admin-login">
+    <div className="admin-login" id="main-content" role="main">
       <div className="page-top">
         <button className="back-btn" onClick={onBack} aria-label="Back">
           <ArrowLeft size={16} />
@@ -96,8 +97,8 @@ export default function AdminLogin({ onLogin, onBack }) {
         <div className="page-hero-inner">
           <div className="page-hero-main">
             <span className="page-hero-tile">
-                <Lock size={24} />
-              </span>
+              <Lock size={24} />
+            </span>
             <div className="page-hero-body">
               <h1 className="page-hero-title">Teacher Login</h1>
               <p className="page-hero-sub">
@@ -108,9 +109,16 @@ export default function AdminLogin({ onLogin, onBack }) {
         </div>
       </section>
 
-      <form className="login-card" onSubmit={handleSubmit}>
+      <form
+        className="login-card"
+        onSubmit={handleSubmit}
+        aria-label="Teacher login"
+        noValidate
+      >
         <div className="form-group">
-          <label htmlFor="admin-email">Email</label>
+          <label htmlFor="admin-email">
+            Email <span className="required-star" aria-hidden="true">*</span>
+          </label>
           <input
             id="admin-email"
             type="email"
@@ -123,26 +131,45 @@ export default function AdminLogin({ onLogin, onBack }) {
             }}
             autoComplete="email"
             autoFocus
+            required
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="admin-password">Password</label>
-          <input
-            id="admin-password"
-            type="password"
-            className="auth-input"
-            placeholder="Your password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value)
-              setError('')
-            }}
-            autoComplete="current-password"
-          />
+          <label htmlFor="admin-password">
+            Password <span className="required-star" aria-hidden="true">*</span>
+          </label>
+          <div className="password-wrap">
+            <input
+              id="admin-password"
+              type={showPassword ? 'text' : 'password'}
+              className="auth-input"
+              placeholder="Your password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value)
+                setError('')
+              }}
+              autoComplete="current-password"
+              required
+            />
+            <button
+              type="button"
+              className="eye-btn"
+              onClick={() => setShowPassword((s) => !s)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-pressed={showPassword}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
         </div>
 
-        {error && <div className="login-error">{error}</div>}
+        {error && (
+          <div className="login-error" role="alert">
+            {error}
+          </div>
+        )}
 
         <button type="submit" className="primary-btn full-width" disabled={loading}>
           <Lock size={18} />

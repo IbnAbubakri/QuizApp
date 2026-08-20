@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { LogIn, Eye, EyeOff } from 'lucide-react'
+import { LogIn, Eye, EyeOff, KeyRound } from 'lucide-react'
 import { useAuth } from '../lib/AuthContext'
 import { validateEmail } from '../lib/validation'
 import Logo from './Logo'
@@ -14,7 +14,7 @@ const getErrorMessage = (error) => {
   return 'Something went wrong. Please try again.'
 }
 
-export default function LoginPage({ onSwitch }) {
+export default function LoginPage({ onSwitch, onForgotPassword }) {
   const { signIn } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -39,9 +39,14 @@ export default function LoginPage({ onSwitch }) {
   }
 
   return (
-    <div className="auth-screen">
+    <div className="auth-screen" id="main-content" role="main">
       <Logo withText />
-      <form className="auth-card" onSubmit={handleSubmit}>
+      <form
+        className="auth-card"
+        onSubmit={handleSubmit}
+        aria-label="Student login"
+        noValidate
+      >
         <div className="login-icon">
           <LogIn size={28} />
         </div>
@@ -49,11 +54,13 @@ export default function LoginPage({ onSwitch }) {
         <p>Log in with the email you registered with.</p>
 
         <div className="form-group">
-          <label htmlFor="login-email">Email</label>
+          <label htmlFor="login-email">
+            Email <span className="required-star" aria-hidden="true">*</span>
+          </label>
           <input
             id="login-email"
             type="email"
-            className="auth-input"
+            className={`auth-input ${errors.email ? 'input-error' : ''}`}
             placeholder="you@example.com"
             value={email}
             onChange={(e) => {
@@ -62,17 +69,26 @@ export default function LoginPage({ onSwitch }) {
             }}
             autoComplete="email"
             autoFocus
+            required
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? 'login-email-error' : undefined}
           />
-          {errors.email && <p className="field-error">{errors.email}</p>}
+          {errors.email && (
+            <p className="field-error" id="login-email-error" role="alert">
+              {errors.email}
+            </p>
+          )}
         </div>
 
         <div className="form-group">
-          <label htmlFor="login-password">Password</label>
+          <label htmlFor="login-password">
+            Password <span className="required-star" aria-hidden="true">*</span>
+          </label>
           <div className="password-wrap">
             <input
               id="login-password"
               type={showPassword ? 'text' : 'password'}
-              className="auth-input"
+              className={`auth-input ${errors.password ? 'input-error' : ''}`}
               placeholder="Your password"
               value={password}
               onChange={(e) => {
@@ -80,27 +96,51 @@ export default function LoginPage({ onSwitch }) {
                 setErrors((prev) => ({ ...prev, password: '' }))
               }}
               autoComplete="current-password"
+              required
+              aria-invalid={!!errors.password}
+              aria-describedby={errors.password ? 'login-password-error' : undefined}
             />
             <button
               type="button"
               className="eye-btn"
               onClick={() => setShowPassword((s) => !s)}
               aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-pressed={showPassword}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
-          {errors.password && <p className="field-error">{errors.password}</p>}
+          {errors.password && (
+            <p className="field-error" id="login-password-error" role="alert">
+              {errors.password}
+            </p>
+          )}
         </div>
 
-        {formError && <div className="login-error auth-error">{formError}</div>}
+        {formError && (
+          <div className="login-error auth-error" role="alert">
+            {formError}
+          </div>
+        )}
 
         <button type="submit" className="primary-btn full-width" disabled={loading}>
           {loading ? 'Logging in…' : 'Log in'}
         </button>
 
+        {onForgotPassword && (
+          <p className="auth-forgot">
+            <button type="button" onClick={onForgotPassword}>
+              <KeyRound size={14} />
+              Forgot password?
+            </button>
+          </p>
+        )}
+
         <p className="auth-switch">
-          Don&apos;t have an account? <button type="button" onClick={onSwitch}>Sign up</button>
+          Don&apos;t have an account?{' '}
+          <button type="button" onClick={onSwitch}>
+            Sign up
+          </button>
         </p>
       </form>
     </div>
